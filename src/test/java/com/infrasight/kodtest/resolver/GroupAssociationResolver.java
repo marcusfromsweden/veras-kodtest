@@ -28,7 +28,7 @@ public class GroupAssociationResolver {
      * @param memberId the ID of the member.
      * @return a set of group IDs to which the member is directly assigned.
      */
-    public Set<String> getDirectGroupIdsForGroupMember(String memberId) {
+    public Set<String> getIdsForMembersDirectGroups(String memberId) {
         List<Relationship> relationshipsForVera = relationshipApiClient.getRelationshipsByMemberId(memberId);
         Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
 
@@ -53,19 +53,19 @@ public class GroupAssociationResolver {
      * @param memberId the ID of the member.
      * @return a set of all group IDs the member belongs to, including indirect group memberships.
      */
-    public Set<String> getAllGroupIdsForGroupMember(String memberId) {
+    public Set<String> getIdsForMembersDirectAndIndirectGroups(String memberId) {
         Set<String> discoveredGroupIds = new HashSet<>();
         Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
         List<Relationship> relationshipsForAccount = relationshipApiClient.getRelationshipsByMemberId(memberId);
         for (Relationship relationship : relationshipsForAccount) {
-            getActiveGroupIdsRecursively(relationship, discoveredGroupIds, new HashSet<>(), idsOfActiveGroups);
+            getIdsForMembersDirectAndIndirectGroupsRecursively(relationship, discoveredGroupIds, new HashSet<>(), idsOfActiveGroups);
         }
 
         return discoveredGroupIds;
     }
 
     /**
-     * Recursively collects active group IDs for a given relationship.
+     * Recursively collects group IDs for a given relationship.
      * <p>
      * If the provided relationship points to an active group, its group memberships are processed recursively.
      * </p>
@@ -75,10 +75,10 @@ public class GroupAssociationResolver {
      * @param processedMemberIds a set to track processed members, preventing infinite recursion (for circular references).
      * @param idsOfActiveGroups  a set containing the IDs of all active groups.
      */
-    private void getActiveGroupIdsRecursively(Relationship relationship,
-                                              Set<String> discoveredGroupIds,
-                                              Set<String> processedMemberIds,
-                                              Set<String> idsOfActiveGroups) {
+    private void getIdsForMembersDirectAndIndirectGroupsRecursively(Relationship relationship,
+                                                                    Set<String> discoveredGroupIds,
+                                                                    Set<String> processedMemberIds,
+                                                                    Set<String> idsOfActiveGroups) {
         String groupId = relationship.getGroupId();
         if (!idsOfActiveGroups.contains(groupId)) {
             return;
@@ -89,7 +89,7 @@ public class GroupAssociationResolver {
         if (!processedMemberIds.contains(groupId)) {
             List<Relationship> groupRelationships = relationshipApiClient.getRelationshipsByMemberId(groupId);
             for (Relationship groupRelationship : groupRelationships) {
-                getActiveGroupIdsRecursively(groupRelationship, discoveredGroupIds, processedMemberIds, idsOfActiveGroups);
+                getIdsForMembersDirectAndIndirectGroupsRecursively(groupRelationship, discoveredGroupIds, processedMemberIds, idsOfActiveGroups);
             }
         }
     }

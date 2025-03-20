@@ -107,7 +107,7 @@ public class Tests extends TestsSetup {
         Account accountForVera = accountsViaEmployeeId.iterator().next();
 
         GroupAssociationResolver groupAssociationResolver = new GroupAssociationResolver(relationshipApiClient, groupApiClient);
-        Set<String> groupIds = groupAssociationResolver.getDirectGroupIdsForGroupMember(accountForVera.getId());
+        Set<String> groupIds = groupAssociationResolver.getIdsForMembersDirectGroups(accountForVera.getId());
 
         assertEquals("Number of direct groups for Vera", 3, groupIds.size());
 
@@ -129,7 +129,7 @@ public class Tests extends TestsSetup {
         Account accountForVera = accountsViaEmployeeId.iterator().next();
 
         GroupAssociationResolver groupAssociationResolver = new GroupAssociationResolver(relationshipApiClient, groupApiClient);
-        Set<String> groupIds = groupAssociationResolver.getAllGroupIdsForGroupMember(accountForVera.getId());
+        Set<String> groupIds = groupAssociationResolver.getIdsForMembersDirectAndIndirectGroups(accountForVera.getId());
 
         List<String> expectedGroupIds = new ArrayList<>();
         expectedGroupIds.add("grp_inhyrda");
