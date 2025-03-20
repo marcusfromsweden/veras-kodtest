@@ -2,53 +2,55 @@ package com.infrasight.kodtest.apiclient;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infrasight.kodtest.dto.Account;
 import com.infrasight.kodtest.dto.ApiRecord;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.concurrent.TimeUnit;
 
 /**
  * API client for fetching records from an API with support for pagination and retries.
  */
 public class ApiClient {
-    private static final int DEFAULT_PAGINATION_LIMIT = 25;
-    private static final String PAGINATION_HEADER_PATTERN = "items (\\d+)-(\\d+)/(\\d+)";
+    private static final Logger logger = LoggerFactory.getLogger(ApiClient.class);
+    private static final int DEFAULT_PAGINATION_LIMIT = 250;
     private static final int DEFAULT_MAX_RETRIES = 10;
-    private static final long BASE_RETRY_DELAY_MS = 100; // Base delay for exponential backoff
+    private static final String URL_PARAM_SKIP = "skip";
+    private static final String URL_PARAM_TAKE = "take";
+    private static final String URL_PARAM_FILTER = "filter";
 
     private final OkHttpClient client;
     private final String apiBaseUrl;
     private final String accessToken;
     private final ObjectMapper objectMapper;
+    private final PaginationHandler paginationHandler;
 
     public ApiClient(OkHttpClient client, String apiBaseUrl, String accessToken) {
         this.client = client;
         this.apiBaseUrl = apiBaseUrl;
         this.accessToken = accessToken;
+        this.paginationHandler = new PaginationHandler();
         this.objectMapper = new ObjectMapper();
     }
 
     /**
-     * Fetches all records from a paginated API endpoint.
+     * Fetches records from a paginated API endpoint.
      *
-     * @param <T>      The type of records extending {@link ApiRecord}.
-     * @param endpoint The API endpoint (e.g., "accounts", "groups" and "relationships").
-     * @param clazz    The class type for JSON deserialization.
-     * @param filter   Optional filter for API requests.
-     * @return A list of records retrieved from the API.
+     * @param <T>      The type of records extending {@link ApiRecord} that will be fetched and mapped from the API response.
+     * @param endpoint The relative API path that identifies the resource to fetch (e.g., "accounts", "groups", "relationships").
+     * @param clazz    The Class representing the type {@code T}, used for JSON deserialization.
+     * @param filter   Optional filter on exact field value. Syntax is field=value. Example: objectType=Account.
+     * @return A list of records of type {@code T} retrieved from the API.
      * @throws ApiClientException If an error occurs during the request.
      */
-    public <T extends ApiRecord> List<T> fetchRecords(String endpoint, Class<T> clazz, String filter) {
+    protected <T extends ApiRecord> List<T> fetchRecords(String endpoint, Class<T> clazz, String filter) {
         List<T> result = new ArrayList<>();
         int skip = 0;
         int totalItems = Integer.MAX_VALUE;
@@ -57,28 +59,13 @@ public class ApiClient {
             String url = buildUrl(endpoint, skip, DEFAULT_PAGINATION_LIMIT, filter);
 
             try (Response response = sendRequestWithRetry(buildGetRequest(url))) {
-                if (!response.isSuccessful()) {
-                    throw new ApiClientException("Request failed: " + response.code() + " - " + response.message());
-                }
-
+                validateResponse(response);
                 result.addAll(parseResponseBody(clazz, response));
-                totalItems = extractTotalItems(response, totalItems);
-                skip += DEFAULT_PAGINATION_LIMIT;
 
-                // Process Content-Range header
                 String contentRange = response.header("Content-Range");
-                if (contentRange != null) {
-                    Matcher matcher = Pattern.compile(PAGINATION_HEADER_PATTERN).matcher(contentRange);
-                    if (matcher.matches()) {
-                        int endIndex = Integer.parseInt(matcher.group(2));
-                        totalItems = Integer.parseInt(matcher.group(3));
-                        skip = endIndex + 1;
-                    } else if (contentRange.startsWith("items */")) { // No more items
-                        break;
-                    }
-                } else { // no Content-Range header
-                    break;
-                }
+                if (paginationHandler.isLastPage(contentRange)) break;
+                totalItems = paginationHandler.extractTotalItems(contentRange);
+                skip = paginationHandler.extractNextSkip(contentRange);
             } catch (IOException e) {
                 throw new ApiClientException("Error fetching records: " + e.getMessage(), e);
             }
@@ -88,21 +75,13 @@ public class ApiClient {
     }
 
     /**
-     * Sends an HTTP GET request with retry logic and exponential backoff.
-     *
-     * @param url The URL to send the request to.
-     * @return The HTTP response.
-     * @throws ApiClientException If the request fails after retries.
+     * Validates the API response.
      */
-    private Response sendGetRequest(String url) {
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .header("Accept", "application/json")
-                .header("Authorization", "Bearer " + accessToken)
-                .build();
-
-        return sendRequestWithRetry(request);
+    private void validateResponse(Response response) {
+        if (!response.isSuccessful()) {
+            throw new ApiClientException(String.format("API request failed with status %d: %s",
+                    response.code(), response.message()));
+        }
     }
 
     /**
@@ -119,7 +98,6 @@ public class ApiClient {
                     return response;
                 } else if (response.code() == 429) { // Too Many Requests
                     response.close();
-                    //sleepWithBackoff(attempt); //todo remove
                     attempt++;
                 } else {
                     throw new ApiClientException("Request failed: " + response.code() + " - " + response.message());
@@ -133,7 +111,14 @@ public class ApiClient {
     }
 
     /**
-     * Parses the response body into a list of objects.
+     * Deserializes the HTTP response body into a list of objects of the specified type.
+     *
+     * @param <T>      The type of objects in the resulting list.
+     * @param clazz    The class type to deserialize the JSON into.
+     * @param response The HTTP response containing the JSON body.
+     * @return A list of deserialized objects of type {@code T}.
+     * @throws IOException If an error occurs while reading or deserializing the response.
+     * @throws ApiClientException If the response body is null.
      */
     private <T> List<T> parseResponseBody(Class<T> clazz, Response response) throws IOException {
         JavaType responseType = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz);
@@ -144,38 +129,31 @@ public class ApiClient {
     }
 
     /**
-     * Extracts the total number of items from the "Content-Range" header.
-     */
-    private int extractTotalItems(Response response, int currentTotal) {
-        String contentRange = response.header("Content-Range");
-        if (contentRange != null) {
-            Matcher matcher = Pattern.compile(PAGINATION_HEADER_PATTERN).matcher(contentRange);
-            if (matcher.matches()) {
-                return Integer.parseInt(matcher.group(3));
-            }
-        }
-        return currentTotal;
-    }
-
-    /**
-     * Builds a URL with pagination and optional filters.
+     * Constructs an API request URL with pagination and optional filtering.
+     *
+     * <p>The resulting URL follows this format:
+     * {@code {apiBaseUrl}{endpoint}?skip={skip}&take={take}[&filter={encodedFilter}]}
+     * where the filter parameter is only included if it is not null or blank.</p>
+     *
+     * @param endpoint The relative API path identifying the resource.
+     * @param skip     The number of records to skip for pagination.
+     * @param take     The number of records to retrieve.
+     * @param filter   Optional filter on exact field value. Syntax is field=value. Example: objectType=Account.
+     * @return A formatted URL string ready for an API request.
      */
     private String buildUrl(String endpoint, int skip, int take, String filter) {
-        String url = String.format("%s%s?skip=%d&take=%d", apiBaseUrl, endpoint, skip, take);
-        return (filter == null) ? url : url + "&filter=" + URLEncoder.encode(filter, StandardCharsets.UTF_8);
-    }
+        StringBuilder urlBuilder = new StringBuilder()
+                .append(apiBaseUrl)
+                .append(endpoint)
+                .append("?").append(URL_PARAM_SKIP).append("=").append(skip)
+                .append("&").append(URL_PARAM_TAKE).append("=").append(take);
 
-    //todo remove?
-    /**
-     * Sleeps using an exponential backoff strategy to handle rate limits.
-     */
-    private void sleepWithBackoff(int attempt) {
-        try {
-            long delay = BASE_RETRY_DELAY_MS * (long) Math.pow(2, attempt);
-            TimeUnit.MILLISECONDS.sleep(delay);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        if (filter != null && !filter.isBlank()) {
+            urlBuilder.append("&").append(URL_PARAM_FILTER).append("=")
+                    .append(URLEncoder.encode(filter, StandardCharsets.UTF_8));
         }
+
+        return urlBuilder.toString();
     }
 
     /**
