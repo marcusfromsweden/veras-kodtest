@@ -54,7 +54,7 @@ public class AccountApiClient {
      *
      * @param firstName The first name used to filter the accounts.
      * @return A list of {@link Account} objects with the specified first name.
-     *         If no matching accounts are found, an empty list is returned.
+     * If no matching accounts are found, an empty list is returned.
      */
     public List<Account> getAccountsByFirstName(String firstName) {
         return apiClient.getRecords(ENDPOINT, Account.class, String.format("%s=%s", PARAM_FIRST_NAME, firstName));

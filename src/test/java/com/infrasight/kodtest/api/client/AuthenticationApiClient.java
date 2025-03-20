@@ -35,7 +35,7 @@ public class AuthenticationApiClient {
      * @param password The password associated with the username.
      * @return A valid authentication token as a {@code String}.
      * @throws AuthenticationApiClientException If authentication fails due to an invalid response,
-     *                                        network issues, or other errors.
+     *                                          network issues, or other errors.
      */
     public String authenticate(String username, String password) {
         String credentials = serializeCredentials(new AuthCredentials(username, password));

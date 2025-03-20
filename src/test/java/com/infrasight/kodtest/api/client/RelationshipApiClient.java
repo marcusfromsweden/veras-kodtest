@@ -22,7 +22,7 @@ public class RelationshipApiClient {
      *
      * @param memberId The unique identifier of the member whose relationships should be retrieved.
      * @return A list of {@link Relationship} objects associated with the given member ID.
-     *         If no relationships exist, an empty list is returned.
+     * If no relationships exist, an empty list is returned.
      */
     public List<Relationship> getRelationshipsByMemberId(String memberId) {
         return apiClient.getRecords(ENDPOINT, Relationship.class, "memberId=" + memberId);
@@ -33,7 +33,7 @@ public class RelationshipApiClient {
      *
      * @param groupId The unique identifier of the group.
      * @return A list of {@link Relationship} objects.
-     *         If no relationships exist, an empty list is returned.
+     * If no relationships exist, an empty list is returned.
      */
     public List<Relationship> getRelationshipsByGroupId(String groupId) {
         return apiClient.getRecords(ENDPOINT, Relationship.class, "groupId=" + groupId);
