@@ -1,22 +1,22 @@
-package com.infrasight.kodtest.service;
+package com.infrasight.kodtest.api.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infrasight.kodtest.api.model.AuthCredentials;
-import com.infrasight.kodtest.exception.AuthenticationServiceException;
+import com.infrasight.kodtest.exception.AuthenticationApiClientException;
 import okhttp3.*;
 
 import java.io.IOException;
 
-public class AuthenticationService {
+public class AuthenticationApiClient {
     private static final String AUTH_PATH = "api/auth";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final OkHttpClient client;
     private final String baseUrl;
 
-    public AuthenticationService(OkHttpClient client, int port) {
+    public AuthenticationApiClient(OkHttpClient client, int port) {
         this.client = client;
         this.baseUrl = buildBaseUrl(port);
     }
@@ -31,7 +31,7 @@ public class AuthenticationService {
      * @param username The username of the user attempting to authenticate.
      * @param password The password associated with the username.
      * @return A valid authentication token as a {@code String}.
-     * @throws AuthenticationServiceException If authentication fails due to an invalid response,
+     * @throws AuthenticationApiClientException If authentication fails due to an invalid response,
      *                                        network issues, or other errors.
      */
     public String authenticate(String username, String password) {
@@ -44,7 +44,7 @@ public class AuthenticationService {
             JsonNode jsonResponse = parseResponseBody(response);
             return extractToken(jsonResponse);
         } catch (IOException e) {
-            throw new AuthenticationServiceException(String.format("Failed to authenticate user '%s'", username), e);
+            throw new AuthenticationApiClientException(String.format("Failed to authenticate user '%s'", username), e);
         }
     }
 
@@ -67,12 +67,12 @@ public class AuthenticationService {
      * Builds the full authentication endpoint URL dynamically using HttpUrl.Builder.
      *
      * @return The fully formatted authentication URL.
-     * @throws AuthenticationServiceException If the base URL is invalid.
+     * @throws AuthenticationApiClientException If the base URL is invalid.
      */
     private String buildAuthUrl() {
         HttpUrl base = HttpUrl.parse(baseUrl);
         if (base == null) {
-            throw new AuthenticationServiceException("Invalid base URL: " + baseUrl);
+            throw new AuthenticationApiClientException("Invalid base URL: " + baseUrl);
         }
 
         return base.newBuilder()
@@ -95,13 +95,13 @@ public class AuthenticationService {
      *
      * @param credentials The authentication credentials.
      * @return The JSON string representation of the credentials.
-     * @throws AuthenticationServiceException If serialization fails.
+     * @throws AuthenticationApiClientException If serialization fails.
      */
     private String serializeCredentials(AuthCredentials credentials) {
         try {
             return OBJECT_MAPPER.writeValueAsString(credentials);
         } catch (JsonProcessingException e) {
-            throw new AuthenticationServiceException("Failed to serialize authentication request", e);
+            throw new AuthenticationApiClientException("Failed to serialize authentication request", e);
         }
     }
 
@@ -109,11 +109,11 @@ public class AuthenticationService {
      * Validates the HTTP response.
      *
      * @param response The HTTP response to validate.
-     * @throws AuthenticationServiceException If the response is unsuccessful.
+     * @throws AuthenticationApiClientException If the response is unsuccessful.
      */
     private void validateResponse(Response response) {
         if (!response.isSuccessful()) {
-            throw new AuthenticationServiceException(
+            throw new AuthenticationApiClientException(
                     String.format("Unexpected response: %s", response.code()));
         }
     }
@@ -123,11 +123,11 @@ public class AuthenticationService {
      *
      * @param response The HTTP response containing the JSON body.
      * @return The parsed JSON node.
-     * @throws AuthenticationServiceException If the response body is null.
+     * @throws AuthenticationApiClientException If the response body is null.
      */
     private JsonNode parseResponseBody(Response response) throws IOException {
         if (response.body() == null) {
-            throw new AuthenticationServiceException("No body in response");
+            throw new AuthenticationApiClientException("No body in response");
         }
         return OBJECT_MAPPER.readTree(response.body().string());
     }
@@ -137,11 +137,11 @@ public class AuthenticationService {
      *
      * @param jsonResponse The JSON response containing the token.
      * @return The extracted token.
-     * @throws AuthenticationServiceException If the token is missing or null.
+     * @throws AuthenticationApiClientException If the token is missing or null.
      */
     private String extractToken(JsonNode jsonResponse) {
         if (!jsonResponse.has("token") || jsonResponse.get("token").isNull()) {
-            throw new AuthenticationServiceException("Authentication response does not contain a valid token");
+            throw new AuthenticationApiClientException("Authentication response does not contain a valid token");
         }
         return jsonResponse.get("token").asText();
     }

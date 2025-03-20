@@ -6,7 +6,7 @@ import com.infrasight.kodtest.api.client.GroupApiClient;
 import com.infrasight.kodtest.api.client.RelationshipApiClient;
 import com.infrasight.kodtest.api.model.Account;
 import com.infrasight.kodtest.api.model.Relationship;
-import com.infrasight.kodtest.service.AuthenticationService;
+import com.infrasight.kodtest.api.client.AuthenticationApiClient;
 import com.infrasight.kodtest.service.resolver.GroupMemberAccountResolver;
 import com.infrasight.kodtest.service.resolver.GroupAssociationResolver;
 import okhttp3.OkHttpClient;
@@ -53,8 +53,8 @@ public class Tests extends TestsSetup {
     @Before
     public void setUp() throws IOException {
         OkHttpClient httpClient = getHttpClientBuilder().build();
-        AuthenticationService authenticationService = new AuthenticationService(httpClient, API_PORT);
-        String accessToken = authenticationService.authenticate(API_USER, API_PASSWORD); //todo dont throw IOException
+        AuthenticationApiClient authenticationApiClient = new AuthenticationApiClient(httpClient, API_PORT);
+        String accessToken = authenticationApiClient.authenticate(API_USER, API_PASSWORD); //todo dont throw IOException
         String apiBaseUrl = String.format("http://localhost:%d/api/", API_PORT);
 
         ApiClient apiClient = new ApiClient(httpClient, apiBaseUrl, accessToken);
