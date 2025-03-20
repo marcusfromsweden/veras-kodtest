@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-
+import com.infrasight.kodtest.helper.AccountHelper;
 import static com.infrasight.kodtest.TestVariables.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -187,7 +187,7 @@ public class Tests extends TestsSetup {
         List<Account> accountsForSwedishSalesStaff = accountApiClient.getActiveAccountsByIds(accountIdsForSwedishSalesStaff);
 
         // filtering on employment date
-        List<Account> resultingAccounts = getAccountsFilteredOnEmploymentDate(
+        List<Account> resultingAccounts = AccountHelper.filterAccountsByEmploymentDate(
                 accountsForSwedishSalesStaff,
                 LocalDate.of(2019, 1, 1),
                 LocalDate.of(2022, 12, 31));
@@ -250,23 +250,6 @@ public class Tests extends TestsSetup {
         return BigDecimal.valueOf(number)
                 .setScale(2, RoundingMode.HALF_UP)
                 .doubleValue();
-    }
-
-    private List<Account> getAccountsFilteredOnEmploymentDate(List<Account> accounts,
-                                                              LocalDate employmentStartDate,
-                                                              LocalDate employmentEndDate) {
-        List<Account> filteredAccount = new ArrayList<>();
-        for (Account account : accounts) {
-            LocalDate employmentDate = Instant.ofEpochSecond(account.getEmployedSince())
-                    .atZone(ZoneId.of("UTC"))
-                    .toLocalDate();
-
-            if ((employmentDate.isEqual(employmentStartDate) || employmentDate.isAfter(employmentStartDate)) &&
-                    (employmentDate.isEqual(employmentEndDate) || employmentDate.isBefore(employmentEndDate))) {
-                filteredAccount.add(account);
-            }
-        }
-        return filteredAccount;
     }
 
 }
