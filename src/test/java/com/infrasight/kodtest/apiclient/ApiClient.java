@@ -67,7 +67,7 @@ public class ApiClient {
                 totalItems = paginationHandler.extractTotalItems(contentRange);
                 skip = paginationHandler.extractNextSkip(contentRange);
             } catch (IOException e) {
-                throw new ApiClientException("Error fetching records: " + e.getMessage(), e);
+                throw new ApiClientException(String.format("Error fetching records: %s", e.getMessage()), e);
             }
         }
 
@@ -100,15 +100,17 @@ public class ApiClient {
                     response.close();
                     attempt++;
                 } else {
-                    throw new ApiClientException("Request failed: " + response.code() + " - " + response.message());
+                    throw new ApiClientException(
+                            String.format("Request failed with status %d: %s", response.code(), response.message()));
                 }
             } catch (IOException e) {
-                throw new ApiClientException("Error making request: " + e.getMessage(), e);
+                throw new ApiClientException(String.format("Error making request: %s", e.getMessage()), e);
             }
         }
 
-        throw new ApiClientException("Max retries reached. Request failed.");
+        throw new ApiClientException(String.format("Max retries (%d) reached. Request failed.", DEFAULT_MAX_RETRIES));
     }
+
 
     /**
      * Deserializes the HTTP response body into a list of objects of the specified type.
@@ -117,7 +119,7 @@ public class ApiClient {
      * @param clazz    The class type to deserialize the JSON into.
      * @param response The HTTP response containing the JSON body.
      * @return A list of deserialized objects of type {@code T}.
-     * @throws IOException If an error occurs while reading or deserializing the response.
+     * @throws IOException        If an error occurs while reading or deserializing the response.
      * @throws ApiClientException If the response body is null.
      */
     private <T> List<T> parseResponseBody(Class<T> clazz, Response response) throws IOException {
@@ -167,7 +169,7 @@ public class ApiClient {
                 .url(url)
                 .get()
                 .header("Accept", "application/json")
-                .header("Authorization", "Bearer " + accessToken)
+                .header("Authorization", String.format("Bearer %s", accessToken))
                 .build();
     }
 }
