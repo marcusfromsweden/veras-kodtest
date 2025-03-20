@@ -171,17 +171,6 @@ public class Tests extends TestsSetup {
         assertEquals("Total interim staff salary match", expectedTotalSalary, totalInterimStaffSalary, 1.0);
     }
 
-    private List<Account> getActiveAccounts(Set<String> accountIdsForInterimStaff) {
-        List<Account> accountsForInterimStaff = new ArrayList<>();
-        for (String accountId : accountIdsForInterimStaff) {
-            Account account = accountApiClient.getAccountById(accountId);
-            if (account.isActive()) {
-                accountsForInterimStaff.add(account);
-            }
-        }
-        return accountsForInterimStaff;
-    }
-
     @Test
     public void assignment5() {
         assertTrue(serverUp);
@@ -241,6 +230,17 @@ public class Tests extends TestsSetup {
                 .forEach(entry ->
                         System.out.println(managerAccounts.get(entry.getKey()).getFullName() + ": " + entry.getValue())
                 );
+    }
+
+    private List<Account> getActiveAccounts(Set<String> accountIds) {
+        List<Account> accounts = new ArrayList<>();
+        for (String accountId : accountIds) {
+            Account account = accountApiClient.getAccountById(accountId);
+            if (account.isActive()) {
+                accounts.add(account);
+            }
+        }
+        return accounts;
     }
 
     private double calculateTotalSalaryInSEK(List<Account> accounts) {
