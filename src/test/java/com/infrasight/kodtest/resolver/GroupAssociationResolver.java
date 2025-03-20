@@ -11,6 +11,7 @@ import java.util.Set;
 public class GroupAssociationResolver {
     private final RelationshipApiClient relationshipApiClient;
     private final GroupApiClient groupApiClient;
+    private Set<String> idsOfActiveGroups;
 
     public GroupAssociationResolver(RelationshipApiClient relationshipApiClient,
                                     GroupApiClient groupApiClient) {
@@ -30,13 +31,11 @@ public class GroupAssociationResolver {
      */
     public Set<String> getIdsForMembersDirectGroups(String memberId) {
         List<Relationship> relationshipsForVera = relationshipApiClient.getRelationshipsByMemberId(memberId);
-        Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
 
-        // getting IDs for active groups
         Set<String> groupIds = new HashSet<>();
         for (Relationship relationship : relationshipsForVera) {
             String groupId = relationship.getGroupId();
-            if (idsOfActiveGroups.contains(groupId)) {
+            if (getIdsOfActiveGroups().contains(groupId)) {
                 groupIds.add(groupId);
             }
         }
@@ -80,7 +79,7 @@ public class GroupAssociationResolver {
                                                                     Set<String> processedMemberIds,
                                                                     Set<String> idsOfActiveGroups) {
         String groupId = relationship.getGroupId();
-        if (!idsOfActiveGroups.contains(groupId)) {
+        if (!getIdsOfActiveGroups().contains(groupId)) {
             return;
         }
 
@@ -94,4 +93,10 @@ public class GroupAssociationResolver {
         }
     }
 
+    private Set<String> getIdsOfActiveGroups() {
+        if (idsOfActiveGroups == null) {
+            idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
+        }
+        return idsOfActiveGroups;
+    }
 }
