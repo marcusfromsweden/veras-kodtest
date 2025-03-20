@@ -21,7 +21,11 @@ public class GroupMemberAccountResolver {
     }
 
     /**
-     * Method for fetching all account IDs under a group. Handles group with groups.
+     * Retrieves the IDs of all accounts associated with a given group, including accounts
+     * from subgroups if the group structure is hierarchical.
+     *
+     * @param groupId the ID of the group for which to retrieve account IDs.
+     * @return a set of account IDs belonging to the specified group and its sub-groups.
      */
     public Set<String> getAccountIdsForGroup(String groupId) {
         Set<String> foundAccountIds = ConcurrentHashMap.newKeySet();
@@ -35,6 +39,13 @@ public class GroupMemberAccountResolver {
         return foundAccountIds;
     }
 
+    /**
+     * Recursively collects account IDs. If the provided ID represents a group, its members are processed recursively.
+     * Otherwise, the ID is added to the set of found account IDs.
+     *
+     * @param groupOrMemberId the ID of a group or account.
+     * @param foundAccountIds the set to which discovered account IDs are added.
+     */
     private void getAccountIdsForGroupRecursively(String groupOrMemberId, Set<String> foundAccountIds) {
         if (getIdsOfAllGroups().contains(groupOrMemberId)) {
             if (!getIdsOfActiveGroups().contains(groupOrMemberId)) {
