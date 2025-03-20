@@ -2,7 +2,6 @@ package com.infrasight.kodtest.api.client;
 
 import com.infrasight.kodtest.api.model.Group;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,9 +20,8 @@ public class GroupApiClient {
      * Fetches all group IDs from the API.
      *
      * @return A set of all group IDs.
-     * @throws IOException If an API request fails.
      */
-    public Set<String> getAllGroupIds() throws IOException {
+    public Set<String> getAllGroupIds() {
         return apiClient.getRecords(ENDPOINT, Group.class, null).stream()
                 .map(Group::getId)
                 .collect(Collectors.toSet());
@@ -33,9 +31,8 @@ public class GroupApiClient {
      * Fetches group IDs for active groups.
      *
      * @return A set of active group IDs.
-     * @throws IOException If an API request fails.
      */
-    public Set<String> getGroupIdsForActiveGroups() throws IOException {
+    public Set<String> getGroupIdsForActiveGroups() {
         return apiClient.getRecords(ENDPOINT, Group.class, null).stream()
                 .filter(Group::isActive)
                 .map(Group::getId)

@@ -2,7 +2,6 @@ package com.infrasight.kodtest.api.client;
 
 import com.infrasight.kodtest.api.model.Relationship;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -21,9 +20,8 @@ public class RelationshipApiClient {
      *
      * @param memberId The ID of the member.
      * @return A list of relationships associated with the member.
-     * @throws IOException If an API request fails.
      */
-    public List<Relationship> getRelationshipsByMemberId(String memberId) throws IOException {
+    public List<Relationship> getRelationshipsByMemberId(String memberId) {
         return apiClient.getRecords(ENDPOINT, Relationship.class, "memberId=" + memberId);
     }
 
@@ -32,9 +30,8 @@ public class RelationshipApiClient {
      *
      * @param groupId The ID of the group.
      * @return A list of relationships for the given group.
-     * @throws IOException If an API request fails.
      */
-    public List<Relationship> getRelationshipsByGroupId(String groupId) throws IOException {
+    public List<Relationship> getRelationshipsByGroupId(String groupId) {
         return apiClient.getRecords(ENDPOINT, Relationship.class, "groupId=" + groupId);
     }
 
@@ -44,10 +41,9 @@ public class RelationshipApiClient {
      *
      * @param managedId The ID of the managed entity. //todo update as managedId is the Id of the manager for an employee
      * @return The unique relationship associated with the managed ID.
-     * @throws IOException If an API request fails.
      * @throws ApiClientException If no or multiple relationships are found.
      */
-    public Relationship getRelationshipsByManagedId(String managedId) throws IOException {
+    public Relationship getRelationshipsByManagedId(String managedId) {
         List<Relationship> relationships = apiClient.getRecords(ENDPOINT, Relationship.class, "managedId=" + managedId);
         if (relationships.isEmpty()) {
             throw new ApiClientException("No Relationship found for managedId " + managedId);

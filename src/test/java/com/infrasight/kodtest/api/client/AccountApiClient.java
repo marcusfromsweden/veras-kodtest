@@ -2,7 +2,6 @@ package com.infrasight.kodtest.api.client;
 
 import com.infrasight.kodtest.api.model.Account;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -16,11 +15,11 @@ public class AccountApiClient {
         this.apiClient = apiClient;
     }
 
-    public List<Account> getAccountsByEmployeeId(String employeeId) throws IOException {
+    public List<Account> getAccountsByEmployeeId(String employeeId) {
         return apiClient.getRecords(ENDPOINT, Account.class, "employeeId=" + employeeId);
     }
 
-    public Account getAccountById(String accountId) throws IOException {
+    public Account getAccountById(String accountId) {
         List<Account> accounts = apiClient.getRecords(ENDPOINT, Account.class, "id=" + accountId);
         if (accounts.isEmpty()) {
             throw new ApiClientException("No Account found for accountId " + accountId);
@@ -30,11 +29,11 @@ public class AccountApiClient {
         return accounts.get(0);
     }
 
-    public List<Account> getAccountsByFirstName(String firstName) throws IOException {
+    public List<Account> getAccountsByFirstName(String firstName) {
         return apiClient.getRecords(ENDPOINT, Account.class, "firstName=" + firstName);
     }
 
-    public List<Account> getAllAccounts() throws IOException {
+    public List<Account> getAllAccounts() {
         return apiClient.getRecords(ENDPOINT, Account.class, null);
     }
 }

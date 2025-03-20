@@ -4,7 +4,6 @@ import com.infrasight.kodtest.api.client.GroupApiClient;
 import com.infrasight.kodtest.api.client.RelationshipApiClient;
 import com.infrasight.kodtest.api.model.Relationship;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,7 +21,7 @@ public class GroupRelationshipService {
     /**
      * Method for fetching immediate group IDs for a member.
      */
-    public Set<String> getDirectGroupIdsForGroupMember(String memberId) throws IOException {
+    public Set<String> getDirectGroupIdsForGroupMember(String memberId) {
         List<Relationship> relationshipsForVera = relationshipApiClient.getRelationshipsByMemberId(memberId);
         Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
 
@@ -40,7 +39,7 @@ public class GroupRelationshipService {
     /**
      * Method for fetching all group IDs for a member. Handles group with groups.
      */
-    public Set<String> getAllGroupIdsForGroupMember(String memberId) throws IOException {
+    public Set<String> getAllGroupIdsForGroupMember(String memberId) {
         Set<String> foundGroupIds = new HashSet<>();
         Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
         List<Relationship> relationshipsForAccount = relationshipApiClient.getRelationshipsByMemberId(memberId);
@@ -54,7 +53,7 @@ public class GroupRelationshipService {
     private void getActiveGroupIdsRecursively(Relationship relationship,
                                               Set<String> foundGroupIds,
                                               Set<String> processedMemberIds,
-                                              Set<String> idsOfActiveGroups) throws IOException {
+                                              Set<String> idsOfActiveGroups) {
         String groupId = relationship.getGroupId();
         if (!idsOfActiveGroups.contains(groupId)) {
             return;

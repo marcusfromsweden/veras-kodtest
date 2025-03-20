@@ -72,7 +72,7 @@ public class Tests extends TestsSetup {
     }
 
     @Test
-    public void assignment1() throws IOException {
+    public void assignment1() {
         assertTrue(serverUp);
 
         String verasEmploymentId = "1337";
@@ -103,7 +103,7 @@ public class Tests extends TestsSetup {
     }
 
     @Test
-    public void assignment2() throws IOException {
+    public void assignment2() {
         assertTrue(serverUp);
 
         List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId("1337")
@@ -129,7 +129,7 @@ public class Tests extends TestsSetup {
     }
 
     @Test
-    public void assignment3() throws IOException {
+    public void assignment3() {
         assertTrue(serverUp);
 
         List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId("1337");
@@ -156,7 +156,7 @@ public class Tests extends TestsSetup {
     }
 
     @Test
-    public void assignment4() throws IOException {
+    public void assignment4() {
         assertTrue(serverUp);
 
         Set<String> allGroupIds = groupApiClient.getAllGroupIds();
@@ -171,7 +171,7 @@ public class Tests extends TestsSetup {
         assertEquals("Total interim staff salary match", expectedTotalSalary, totalInterimStaffSalary, 1.0);
     }
 
-    private List<Account> getActiveAccounts(Set<String> accountIdsForInterimStaff) throws IOException {
+    private List<Account> getActiveAccounts(Set<String> accountIdsForInterimStaff) {
         List<Account> accountsForInterimStaff = new ArrayList<>();
         for (String accountId : accountIdsForInterimStaff) {
             Account account = accountApiClient.getAccountById(accountId);
@@ -183,7 +183,7 @@ public class Tests extends TestsSetup {
     }
 
     @Test
-    public void assignment5() throws IOException {
+    public void assignment5() {
         assertTrue(serverUp);
 
         Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();

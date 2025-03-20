@@ -3,7 +3,6 @@ package com.infrasight.kodtest.service;
 import com.infrasight.kodtest.api.client.RelationshipApiClient;
 import com.infrasight.kodtest.api.model.Relationship;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +23,7 @@ public class AccountService {
     /**
      * Method for fetching all accounts under a group. Handles group with groups.
      */
-    public Set<String> getAccountIdsByGroupId(String groupId) throws IOException {
+    public Set<String> getAccountIdsByGroupId(String groupId) {
         Set<String> foundAccountIds = ConcurrentHashMap.newKeySet();
 
         List<Relationship> relationships = relationshipApiClient.getRelationshipsByGroupId(groupId);
@@ -36,7 +35,7 @@ public class AccountService {
         return foundAccountIds;
     }
 
-    private void getAccountIdsRecursively(String groupOrMemberId, Set<String> foundAccountIds) throws IOException {
+    private void getAccountIdsRecursively(String groupOrMemberId, Set<String> foundAccountIds) {
         if (allGroupIds.contains(groupOrMemberId)) {
             if (!idsOfActiveGroups.contains(groupOrMemberId)) {
                 return;
