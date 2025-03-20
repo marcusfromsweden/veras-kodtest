@@ -1,4 +1,4 @@
-package com.infrasight.kodtest.service.resolver;
+package com.infrasight.kodtest.resolver;
 
 import com.infrasight.kodtest.api.client.GroupApiClient;
 import com.infrasight.kodtest.api.client.RelationshipApiClient;
