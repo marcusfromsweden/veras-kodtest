@@ -17,7 +17,7 @@ public class RelationshipApiClient {
     }
 
     /**
-     * Retrieves all relationships associated with a given member ID.
+     * Retrieves relationships associated with a given member ID.
      *
      * @param memberId The unique identifier of the member whose relationships should be retrieved.
      * @return A list of {@link Relationship} objects associated with the given member ID.

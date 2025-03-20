@@ -20,10 +20,23 @@ public class AccountApiClient {
         this.apiClient = apiClient;
     }
 
+    /**
+     * Retrieves accounts associated with a given employee ID.
+     *
+     * @param employeeId The unique identifier of the employee whose accounts are to be retrieved.
+     * @return A list of {@link Account} objects associated with the given employee ID.
+     */
     public List<Account> getAccountsByEmployeeId(String employeeId) {
         return apiClient.getRecords(ENDPOINT, Account.class, String.format("%s=%s", PARAM_EMPLOYEE_ID, employeeId));
     }
 
+    /**
+     * Retrieves an account by ID.
+     *
+     * @param accountId The unique identifier of the account to retrieve.
+     * @return The {@link Account} object corresponding to the given account ID.
+     * @throws AccountApiClientException If none or multiple accounts are found.
+     */
     public Account getAccountById(String accountId) {
         List<Account> accounts = apiClient.getRecords(ENDPOINT, Account.class, String.format("%s=%s", PARAM_ID, accountId));
         if (accounts.isEmpty()) {
@@ -34,6 +47,13 @@ public class AccountApiClient {
         return accounts.get(0);
     }
 
+    /**
+     * Retrieves accounts matching the specified first name.
+     *
+     * @param firstName The first name used to filter the accounts.
+     * @return A list of {@link Account} objects with the specified first name.
+     *         If no matching accounts are found, an empty list is returned.
+     */
     public List<Account> getAccountsByFirstName(String firstName) {
         return apiClient.getRecords(ENDPOINT, Account.class, String.format("%s=%s", PARAM_FIRST_NAME, firstName));
     }
