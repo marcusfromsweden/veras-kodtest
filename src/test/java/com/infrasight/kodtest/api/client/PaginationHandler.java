@@ -1,4 +1,4 @@
-package com.infrasight.kodtest.apiclient;
+package com.infrasight.kodtest.api.client;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

@@ -1,8 +1,8 @@
-package com.infrasight.kodtest.apiclient;
+package com.infrasight.kodtest.api.client;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infrasight.kodtest.dto.ApiRecord;
+import com.infrasight.kodtest.api.model.ApiRecord;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;

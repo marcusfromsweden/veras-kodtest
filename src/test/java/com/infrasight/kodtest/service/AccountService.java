@@ -1,7 +1,7 @@
 package com.infrasight.kodtest.service;
 
-import com.infrasight.kodtest.apiclient.RelationshipApiClient;
-import com.infrasight.kodtest.dto.Relationship;
+import com.infrasight.kodtest.api.client.RelationshipApiClient;
+import com.infrasight.kodtest.api.model.Relationship;
 
 import java.io.IOException;
 import java.util.List;

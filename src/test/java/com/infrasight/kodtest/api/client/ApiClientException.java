@@ -1,4 +1,4 @@
-package com.infrasight.kodtest.apiclient;
+package com.infrasight.kodtest.api.client;
 
 /**
  * Custom exception for API client errors.

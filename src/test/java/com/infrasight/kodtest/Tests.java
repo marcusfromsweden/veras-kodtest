@@ -1,11 +1,11 @@
 package com.infrasight.kodtest;
 
-import com.infrasight.kodtest.apiclient.AccountApiClient;
-import com.infrasight.kodtest.apiclient.ApiClient;
-import com.infrasight.kodtest.apiclient.GroupApiClient;
-import com.infrasight.kodtest.apiclient.RelationshipApiClient;
-import com.infrasight.kodtest.dto.Account;
-import com.infrasight.kodtest.dto.Relationship;
+import com.infrasight.kodtest.api.client.AccountApiClient;
+import com.infrasight.kodtest.api.client.ApiClient;
+import com.infrasight.kodtest.api.client.GroupApiClient;
+import com.infrasight.kodtest.api.client.RelationshipApiClient;
+import com.infrasight.kodtest.api.model.Account;
+import com.infrasight.kodtest.api.model.Relationship;
 import com.infrasight.kodtest.service.AccountService;
 import com.infrasight.kodtest.service.AuthorisationService;
 import com.infrasight.kodtest.service.GroupRelationshipService;

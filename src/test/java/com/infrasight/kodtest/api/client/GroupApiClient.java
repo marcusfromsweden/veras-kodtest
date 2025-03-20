@@ -1,6 +1,6 @@
-package com.infrasight.kodtest.apiclient;
+package com.infrasight.kodtest.api.client;
 
-import com.infrasight.kodtest.dto.Group;
+import com.infrasight.kodtest.api.model.Group;
 
 import java.io.IOException;
 import java.util.Set;

@@ -2,7 +2,7 @@ package com.infrasight.kodtest.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infrasight.kodtest.dto.AuthCredentials;
+import com.infrasight.kodtest.api.model.AuthCredentials;
 import okhttp3.*;
 
 import java.io.IOException;
