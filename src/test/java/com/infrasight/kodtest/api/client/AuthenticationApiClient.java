@@ -9,6 +9,9 @@ import okhttp3.*;
 
 import java.io.IOException;
 
+/**
+ * Client for handling authentication requests to the API.
+ */
 public class AuthenticationApiClient {
     private static final String AUTH_PATH = "api/auth";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

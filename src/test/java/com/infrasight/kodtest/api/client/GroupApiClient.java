@@ -2,6 +2,7 @@ package com.infrasight.kodtest.api.client;
 
 import com.infrasight.kodtest.api.model.Group;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
  */
 public class GroupApiClient {
     private static final String ENDPOINT = "groups";
+
     private final ApiClient apiClient;
 
     public GroupApiClient(ApiClient apiClient) {
@@ -17,25 +19,34 @@ public class GroupApiClient {
     }
 
     /**
-     * Fetches all group IDs from the API.
+     * Retrieves all group IDs from the API.
      *
-     * @return A set of all group IDs.
+     * @return a set of all group IDs.
      */
     public Set<String> getAllGroupIds() {
-        return apiClient.getRecords(ENDPOINT, Group.class, null).stream()
+        return getAllGroups().stream()
                 .map(Group::getId)
                 .collect(Collectors.toSet());
     }
 
     /**
-     * Fetches group IDs for active groups.
+     * Retrieves the IDs of all active groups.
      *
-     * @return A set of active group IDs.
+     * @return a set of group IDs
      */
     public Set<String> getGroupIdsForActiveGroups() {
-        return apiClient.getRecords(ENDPOINT, Group.class, null).stream()
+        return getAllGroups().stream()
                 .filter(Group::isActive)
                 .map(Group::getId)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Fetches all groups from the API.
+     *
+     * @return A list of all groups.
+     */
+    private List<Group> getAllGroups() {
+        return apiClient.getRecords(ENDPOINT, Group.class, null);
     }
 }

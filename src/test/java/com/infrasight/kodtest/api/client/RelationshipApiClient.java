@@ -10,6 +10,7 @@ import java.util.List;
  */
 public class RelationshipApiClient {
     private static final String ENDPOINT = "relationships";
+
     private final ApiClient apiClient;
 
     public RelationshipApiClient(ApiClient apiClient) {
