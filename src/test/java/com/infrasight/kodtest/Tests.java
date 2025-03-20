@@ -43,6 +43,9 @@ public class Tests extends TestsSetup {
     public static final String VERAS_EMPLOYEE_ID = "1337";
     public static final String VERAS_FIRST_NAME = "Vera";
     public static final String VERAS_LAST_NAME = "Scope";
+    public static final String GROUP_ID_SALES = "grp_saljare";
+    public static final String GROUP_ID_SWEDEN = "grp_sverige";
+    public static final String GROUP_ID_INTERIM_STAFF = "grp_inhyrda";
 
     private AccountApiClient accountApiClient;
     private RelationshipApiClient relationshipApiClient;
@@ -128,6 +131,7 @@ public class Tests extends TestsSetup {
 
         List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID);
         Account accountForVera = accountsViaEmployeeId.iterator().next();
+
         GroupAssociationResolver groupAssociationResolver = new GroupAssociationResolver(relationshipApiClient, groupApiClient);
         Set<String> groupIds = groupAssociationResolver.getAllGroupIdsForGroupMember(accountForVera.getId());
 
@@ -154,8 +158,10 @@ public class Tests extends TestsSetup {
         assertTrue(serverUp);
 
         GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, groupApiClient);
-        Set<String> accountIdsForInterimStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_inhyrda");
+
+        Set<String> accountIdsForInterimStaff = groupMemberAccountResolver.getAccountIdsForGroup(GROUP_ID_INTERIM_STAFF);
         List<Account> accountsForInterimStaff = accountApiClient.getActiveAccountsByIds(accountIdsForInterimStaff);
+
         double totalInterimStaffSalary = SalaryHelper.calculateTotalSalaryInSEK(accountsForInterimStaff);
 
         double expectedTotalSalary = 24650836.8;
@@ -167,24 +173,23 @@ public class Tests extends TestsSetup {
         assertTrue(serverUp);
 
         GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, groupApiClient);
-        Set<String> accountIdsForSalesStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_saljare");
-        Set<String> accountIdsForSwedishEmployees = groupMemberAccountResolver.getAccountIdsForGroup("grp_sverige");
+
+        Set<String> accountIdsForSalesStaff = groupMemberAccountResolver.getAccountIdsForGroup(GROUP_ID_SALES);
+        Set<String> accountIdsForSwedishEmployees = groupMemberAccountResolver.getAccountIdsForGroup(GROUP_ID_SWEDEN);
 
         // collecting account IDs for Swedish sales staff
         Set<String> accountIdsForSwedishSalesStaff = accountIdsForSalesStaff.stream()
                 .filter(accountIdsForSwedishEmployees::contains)
                 .collect(Collectors.toSet());
 
-        // collecting active accounts
         List<Account> accountsForSwedishSalesStaff = accountApiClient.getActiveAccountsByIds(accountIdsForSwedishSalesStaff);
 
-        // filtering on employment date
         List<Account> resultingAccounts = AccountHelper.filterAccountsByEmploymentDate(
                 accountsForSwedishSalesStaff,
                 LocalDate.of(2019, 1, 1),
                 LocalDate.of(2022, 12, 31));
 
-        // collecting managers accounts
+        // collecting managers and their number of accounts
         Map<String, Integer> managerIdToAccountCounts = new HashMap<>();
         for (Account account : resultingAccounts) {
             Relationship managerRelationship = relationshipApiClient.getRelationshipsByManagedId(account.getId());
@@ -207,6 +212,7 @@ public class Tests extends TestsSetup {
             assertEquals("Number of sales staff for manager with ID " + entry.getKey(), entry.getValue(), managerIdToAccountCounts.get(entry.getKey()));
         }
 
+        // get manager accounts (for printing the sorted list)
         Map<String, Account> managerAccounts = new HashMap<>();
         for (String managerId : managerIdToAccountCounts.keySet()) {
             managerAccounts.put(managerId, accountApiClient.getAccountById(managerId));
