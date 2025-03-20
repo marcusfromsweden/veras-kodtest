@@ -17,32 +17,33 @@ public class RelationshipApiClient {
     }
 
     /**
-     * Fetches all relationships where the given member ID is involved.
+     * Retrieves all relationships associated with a given member ID.
      *
-     * @param memberId The ID of the member.
-     * @return A list of relationships associated with the member.
+     * @param memberId The unique identifier of the member whose relationships should be retrieved.
+     * @return A list of {@link Relationship} objects associated with the given member ID.
+     *         If no relationships exist, an empty list is returned.
      */
     public List<Relationship> getRelationshipsByMemberId(String memberId) {
         return apiClient.getRecords(ENDPOINT, Relationship.class, "memberId=" + memberId);
     }
 
     /**
-     * Fetches all relationships associated with a specific group ID.
+     * Retrieves relationships for a given group ID.
      *
-     * @param groupId The ID of the group.
-     * @return A list of relationships for the given group.
+     * @param groupId The unique identifier of the group.
+     * @return A list of {@link Relationship} objects.
+     *         If no relationships exist, an empty list is returned.
      */
     public List<Relationship> getRelationshipsByGroupId(String groupId) {
         return apiClient.getRecords(ENDPOINT, Relationship.class, "groupId=" + groupId);
     }
 
     /**
-     * Fetches the relationship where the given managed ID is involved.
-     * If multiple relationships are found, an exception is thrown.
+     * Retrieves the relationship for a given managed account ID.
      *
-     * @param managedId The ID of the managed entity. //todo update as managedId is the Id of the manager for an employee
-     * @return The unique relationship associated with the managed ID.
-     * @throws ApiClientException If no or multiple relationships are found.
+     * @param managedId The account ID of an employee that is managed (by a specific manager.)
+     * @return The {@link Relationship} associated with the given managed account ID.
+     * @throws RelationshipApiClientException If none or multiple relationships are found.
      */
     public Relationship getRelationshipsByManagedId(String managedId) {
         List<Relationship> relationships = apiClient.getRecords(ENDPOINT, Relationship.class, "managedId=" + managedId);
