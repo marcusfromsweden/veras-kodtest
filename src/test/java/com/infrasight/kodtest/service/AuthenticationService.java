@@ -25,13 +25,7 @@ public class AuthenticationService {
     public String authenticate(String username, String password) {
         String credentials = serializeCredentials(new AuthCredentials(username, password));
         RequestBody requestBody = RequestBody.create(credentials, MediaType.get("application/json"));
-        String url = buildAuthUrl();
-        Request request = new Request.Builder()
-                .url(url)
-                .post(requestBody)
-                .header("Accept", "application/json")
-                .header("Content-Type", "application/json")
-                .build();
+        Request request = createAuthRequest(buildAuthUrl(), requestBody);
 
         try (Response response = client.newCall(request).execute()) {
             validateResponse(response);
@@ -73,6 +67,15 @@ public class AuthenticationService {
                 .addPathSegments(AUTH_PATH)
                 .build()
                 .toString();
+    }
+
+    private Request createAuthRequest(String url, RequestBody requestBody) {
+        return new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .build();
     }
 
     /**
