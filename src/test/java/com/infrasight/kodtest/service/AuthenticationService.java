@@ -7,7 +7,6 @@ import com.infrasight.kodtest.api.model.AuthCredentials;
 import com.infrasight.kodtest.exception.AuthenticationServiceException;
 import okhttp3.*;
 
-
 import java.io.IOException;
 
 public class AuthenticationService {
@@ -22,10 +21,23 @@ public class AuthenticationService {
         this.baseUrl = buildBaseUrl(port);
     }
 
+    /**
+     * Authenticates a user by sending their credentials to the authentication API.
+     * <p>
+     * This method constructs an authentication request, sends it to the API,
+     * and extracts the authentication token from the response.
+     * </p>
+     *
+     * @param username The username of the user attempting to authenticate.
+     * @param password The password associated with the username.
+     * @return A valid authentication token as a {@code String}.
+     * @throws AuthenticationServiceException If authentication fails due to an invalid response,
+     *                                        network issues, or other errors.
+     */
     public String authenticate(String username, String password) {
         String credentials = serializeCredentials(new AuthCredentials(username, password));
         RequestBody requestBody = RequestBody.create(credentials, MediaType.get("application/json"));
-        Request request = createAuthRequest(buildAuthUrl(), requestBody);
+        Request request = buildAuthRequest(buildAuthUrl(), requestBody);
 
         try (Response response = client.newCall(request).execute()) {
             validateResponse(response);
@@ -69,7 +81,7 @@ public class AuthenticationService {
                 .toString();
     }
 
-    private Request createAuthRequest(String url, RequestBody requestBody) {
+    private Request buildAuthRequest(String url, RequestBody requestBody) {
         return new Request.Builder()
                 .url(url)
                 .post(requestBody)
