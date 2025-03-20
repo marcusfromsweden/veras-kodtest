@@ -40,6 +40,10 @@ import static org.junit.Assert.assertTrue;
  */
 public class Tests extends TestsSetup {
 
+    public static final String VERAS_EMPLOYEE_ID = "1337";
+    public static final String VERAS_FIRST_NAME = "Vera";
+    public static final String VERAS_LAST_NAME = "Scope";
+
     private AccountApiClient accountApiClient;
     private RelationshipApiClient relationshipApiClient;
     private GroupApiClient groupApiClient;
@@ -69,29 +73,25 @@ public class Tests extends TestsSetup {
     public void assignment1() {
         assertTrue(serverUp);
 
-        String verasEmploymentId = "1337";
-        String verasFirstName = "Vera";
-        String verasLastName = "Scope";
-
         // getting active accounts by employment ID
-        List<Account> activeAccountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(verasEmploymentId)
+        List<Account> activeAccountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID)
                 .stream()
                 .filter(Account::isActive)
                 .collect(Collectors.toList());
         assertEquals("One account expected for Vera (via employeeId)", 1, activeAccountsViaEmployeeId.size());
         Account accountForVera = activeAccountsViaEmployeeId.get(0);
-        assertEquals("First name correct on account", verasFirstName, accountForVera.getFirstName());
-        assertEquals("Last name correct on account", verasLastName, accountForVera.getLastName());
+        assertEquals("First name correct on account", VERAS_FIRST_NAME, accountForVera.getFirstName());
+        assertEquals("Last name correct on account", VERAS_LAST_NAME, accountForVera.getLastName());
 
-        // getting active accounts by first and last name
-        List<Account> activeAccountsByFirstAndLastName = accountApiClient.getAccountsByFirstName(verasFirstName)
+        // getting active accounts by first and last name (to check for more accounts)
+        List<Account> activeAccountsByFirstAndLastName = accountApiClient.getAccountsByFirstName(VERAS_FIRST_NAME)
                 .stream()
-                .filter(a -> verasLastName.equals(a.getLastName()))
+                .filter(a -> VERAS_LAST_NAME.equals(a.getLastName()))
                 .filter(Account::isActive)
                 .collect(Collectors.toList());
 
         for (Account account : activeAccountsByFirstAndLastName) {
-            assertEquals("Account id via first and last name is the same as Veras account",
+            assertEquals("Account id via first and last name is the same as Veras account (via employeeId)",
                     accountForVera.getId(), account.getId());
         }
     }
@@ -100,7 +100,7 @@ public class Tests extends TestsSetup {
     public void assignment2() {
         assertTrue(serverUp);
 
-        List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId("1337")
+        List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID)
                 .stream()
                 .filter(Account::isActive)
                 .collect(Collectors.toList());
@@ -126,7 +126,7 @@ public class Tests extends TestsSetup {
     public void assignment3() {
         assertTrue(serverUp);
 
-        List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId("1337");
+        List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID);
         Account accountForVera = accountsViaEmployeeId.iterator().next();
         GroupAssociationResolver groupAssociationResolver = new GroupAssociationResolver(relationshipApiClient, groupApiClient);
         Set<String> groupIds = groupAssociationResolver.getAllGroupIdsForGroupMember(accountForVera.getId());
