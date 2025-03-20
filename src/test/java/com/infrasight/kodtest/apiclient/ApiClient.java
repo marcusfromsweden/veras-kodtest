@@ -27,22 +27,22 @@ public class ApiClient {
     private static final long BASE_RETRY_DELAY_MS = 100; // Base delay for exponential backoff
 
     private final OkHttpClient client;
-    private final ObjectMapper objectMapper;
     private final String apiBaseUrl;
     private final String accessToken;
+    private final ObjectMapper objectMapper;
 
     public ApiClient(OkHttpClient client, String apiBaseUrl, String accessToken) {
         this.client = client;
-        this.objectMapper = new ObjectMapper();
         this.apiBaseUrl = apiBaseUrl;
         this.accessToken = accessToken;
+        this.objectMapper = new ObjectMapper();
     }
 
     /**
      * Fetches all records from a paginated API endpoint.
      *
      * @param <T>      The type of records extending {@link ApiRecord}.
-     * @param endpoint The API endpoint (e.g., "users", "orders").
+     * @param endpoint The API endpoint (e.g., "accounts", "groups" and "relationships").
      * @param clazz    The class type for JSON deserialization.
      * @param filter   Optional filter for API requests.
      * @return A list of records retrieved from the API.
@@ -56,7 +56,7 @@ public class ApiClient {
         while (skip < totalItems) {
             String url = buildUrl(endpoint, skip, DEFAULT_PAGINATION_LIMIT, filter);
 
-            try (Response response = sendGetRequest(url)) {
+            try (Response response = sendRequestWithRetry(buildGetRequest(url))) {
                 if (!response.isSuccessful()) {
                     throw new ApiClientException("Request failed: " + response.code() + " - " + response.message());
                 }
@@ -178,4 +178,18 @@ public class ApiClient {
         }
     }
 
+    /**
+     * Builds a GET request with authorization headers.
+     *
+     * @param url The URL to send the request to.
+     * @return A configured {@link Request} object.
+     */
+    private Request buildGetRequest(String url) {
+        return new Request.Builder()
+                .url(url)
+                .get()
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer " + accessToken)
+                .build();
+    }
 }
