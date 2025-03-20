@@ -48,7 +48,7 @@ public class Tests extends TestsSetup {
     public void setUp() throws IOException {
         OkHttpClient httpClient = getHttpClientBuilder().build();
         AuthenticationApiClient authenticationApiClient = new AuthenticationApiClient(httpClient, API_PORT);
-        String accessToken = authenticationApiClient.authenticate(API_USER, API_PASSWORD); //todo dont throw IOException
+        String accessToken = authenticationApiClient.authenticate(API_USER, API_PASSWORD);
         String apiBaseUrl = String.format("http://localhost:%d/api/", API_PORT);
 
         ApiClient apiClient = new ApiClient(httpClient, apiBaseUrl, accessToken);
@@ -153,10 +153,7 @@ public class Tests extends TestsSetup {
     public void assignment4() {
         assertTrue(serverUp);
 
-        Set<String> allGroupIds = groupApiClient.getAllGroupIds();
-        Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
-
-        GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, allGroupIds, idsOfActiveGroups);
+        GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, groupApiClient);
         Set<String> accountIdsForInterimStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_inhyrda");
         List<Account> accountsForInterimStaff = accountApiClient.getActiveAccountsByIds(accountIdsForInterimStaff);
         double totalInterimStaffSalary = SalaryHelper.calculateTotalSalaryInSEK(accountsForInterimStaff);
@@ -169,10 +166,7 @@ public class Tests extends TestsSetup {
     public void assignment5() {
         assertTrue(serverUp);
 
-        Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
-        Set<String> allGroupIds = groupApiClient.getAllGroupIds();
-
-        GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, allGroupIds, idsOfActiveGroups);
+        GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, groupApiClient);
         Set<String> accountIdsForSalesStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_saljare");
         Set<String> accountIdsForSwedishEmployees = groupMemberAccountResolver.getAccountIdsForGroup("grp_sverige");
 

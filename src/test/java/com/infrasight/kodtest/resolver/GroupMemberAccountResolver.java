@@ -1,5 +1,6 @@
 package com.infrasight.kodtest.resolver;
 
+import com.infrasight.kodtest.api.client.GroupApiClient;
 import com.infrasight.kodtest.api.client.RelationshipApiClient;
 import com.infrasight.kodtest.api.model.Relationship;
 
@@ -9,15 +10,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GroupMemberAccountResolver {
     private final RelationshipApiClient relationshipApiClient;
-    private final Set<String> allGroupIds;
-    private final Set<String> idsOfActiveGroups;
+    private final GroupApiClient groupApiClient;
+    private Set<String> allGroupIds;
+    private Set<String> idsOfActiveGroups;
 
     public GroupMemberAccountResolver(RelationshipApiClient relationshipApiClient,
-                                      Set<String> allGroupIds,
-                                      Set<String> idsOfActiveGroups) {
+                                      GroupApiClient groupApiClient) {
         this.relationshipApiClient = relationshipApiClient;
-        this.allGroupIds = allGroupIds;
-        this.idsOfActiveGroups = idsOfActiveGroups;
+        this.groupApiClient = groupApiClient;
     }
 
     /**
@@ -36,8 +36,8 @@ public class GroupMemberAccountResolver {
     }
 
     private void getAccountIdsForGroupRecursively(String groupOrMemberId, Set<String> foundAccountIds) {
-        if (allGroupIds.contains(groupOrMemberId)) {
-            if (!idsOfActiveGroups.contains(groupOrMemberId)) {
+        if (getIdsOfAllGroups().contains(groupOrMemberId)) {
+            if (!getIdsOfActiveGroups().contains(groupOrMemberId)) {
                 return;
             }
             List<Relationship> groupRelationships = relationshipApiClient.getRelationshipsByGroupId(groupOrMemberId);
@@ -48,5 +48,19 @@ public class GroupMemberAccountResolver {
         } else {
             foundAccountIds.add(groupOrMemberId);
         }
+    }
+
+    private Set<String> getIdsOfAllGroups() {
+        if (allGroupIds == null) {
+            allGroupIds = groupApiClient.getAllGroupIds();
+        }
+        return allGroupIds;
+    }
+
+    private Set<String> getIdsOfActiveGroups() {
+        if (idsOfActiveGroups == null) {
+            idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
+        }
+        return idsOfActiveGroups;
     }
 }
