@@ -1,25 +1,44 @@
 package com.infrasight.kodtest.apiclient;
 
 import com.infrasight.kodtest.dto.Group;
-import okhttp3.OkHttpClient;
 
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class GroupApiClient extends ApiClient {
+/**
+ * API client for fetching Group-related data from the API.
+ */
+public class GroupApiClient {
     private static final String ENDPOINT = "groups";
+    private final ApiClient apiClient;
 
-    public GroupApiClient(OkHttpClient httpClient, String accessToken) {
-        super(httpClient, accessToken);
+    public GroupApiClient(ApiClient apiClient) {
+        this.apiClient = apiClient;
     }
 
+    /**
+     * Fetches all group IDs from the API.
+     *
+     * @return A set of all group IDs.
+     * @throws IOException If an API request fails.
+     */
     public Set<String> getAllGroupIds() throws IOException {
-        return getRecordsFromEndpoint(ENDPOINT, Group.class).stream().map(Group::getId).collect(Collectors.toSet());
+        return apiClient.fetchRecords(ENDPOINT, Group.class, null).stream()
+                .map(Group::getId)
+                .collect(Collectors.toSet());
     }
 
+    /**
+     * Fetches group IDs for active groups.
+     *
+     * @return A set of active group IDs.
+     * @throws IOException If an API request fails.
+     */
     public Set<String> getGroupIdsForActiveGroups() throws IOException {
-        return getRecordsFromEndpoint(ENDPOINT, Group.class).stream()
-                .filter(Group::isActive).map(Group::getId).collect(Collectors.toSet());
+        return apiClient.fetchRecords(ENDPOINT, Group.class, null).stream()
+                .filter(Group::isActive)
+                .map(Group::getId)
+                .collect(Collectors.toSet());
     }
 }

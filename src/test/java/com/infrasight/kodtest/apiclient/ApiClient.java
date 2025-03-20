@@ -2,6 +2,7 @@ package com.infrasight.kodtest.apiclient;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infrasight.kodtest.dto.Account;
 import com.infrasight.kodtest.dto.ApiRecord;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -14,54 +15,60 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.TimeUnit;
 
-import static com.infrasight.kodtest.TestVariables.API_PORT;
-
+/**
+ * API client for fetching records from an API with support for pagination and retries.
+ */
 public class ApiClient {
-    private static final String API_BASE_URL = "http://localhost:"+API_PORT+"/api/";
-    private static final int PAGINATION_MAX_TAKE = 25;
-    private static final String PAGINATION_RANGE_HEADER_PATTERN = "items (\\d+)-(\\d+)/(\\d+)";
-    private static final int MAX_RETRIES_FOR_TOO_MANY_REQUESTS = 10;
+    private static final int DEFAULT_PAGINATION_LIMIT = 25;
+    private static final String PAGINATION_HEADER_PATTERN = "items (\\d+)-(\\d+)/(\\d+)";
+    private static final int DEFAULT_MAX_RETRIES = 10;
+    private static final long BASE_RETRY_DELAY_MS = 100; // Base delay for exponential backoff
 
     private final OkHttpClient client;
     private final ObjectMapper objectMapper;
+    private final String apiBaseUrl;
     private final String accessToken;
 
-    protected ApiClient(OkHttpClient client, String accessToken) {
+    public ApiClient(OkHttpClient client, String apiBaseUrl, String accessToken) {
         this.client = client;
         this.objectMapper = new ObjectMapper();
+        this.apiBaseUrl = apiBaseUrl;
         this.accessToken = accessToken;
     }
 
-    protected <T extends ApiRecord> List<T> getRecordsFromEndpoint(String endpoint, Class<T> clazz) throws IOException {
-        return getRecordsFromEndpoint(endpoint, clazz, null);
-    }
-
     /**
-     * Fetches records (Account, Group, Relationship) from the specified API endpoint.
-     * This method retrieves data in a paginated manner using the "skip" and "take" query parameters.
-     * If the API response returns an HTTP 429 (Too Many Requests), the request is retried.
+     * Fetches all records from a paginated API endpoint.
+     *
+     * @param <T>      The type of records extending {@link ApiRecord}.
+     * @param endpoint The API endpoint (e.g., "users", "orders").
+     * @param clazz    The class type for JSON deserialization.
+     * @param filter   Optional filter for API requests.
+     * @return A list of records retrieved from the API.
+     * @throws ApiClientException If an error occurs during the request.
      */
-    protected <T extends ApiRecord> List<T> getRecordsFromEndpoint(String endpoint, Class<T> clazz, String filter) throws IOException {
+    public <T extends ApiRecord> List<T> fetchRecords(String endpoint, Class<T> clazz, String filter) {
         List<T> result = new ArrayList<>();
         int skip = 0;
         int totalItems = Integer.MAX_VALUE;
 
         while (skip < totalItems) {
-            String url = String.format("%s%s?skip=%d&take=%d", API_BASE_URL, endpoint, skip, PAGINATION_MAX_TAKE);
-            url = addFilter(filter, url);
+            String url = buildUrl(endpoint, skip, DEFAULT_PAGINATION_LIMIT, filter);
 
             try (Response response = sendGetRequest(url)) {
                 if (!response.isSuccessful()) {
-                    throw new RuntimeException("Request failed: " + response.code() + " - " + response.message());
+                    throw new ApiClientException("Request failed: " + response.code() + " - " + response.message());
                 }
 
                 result.addAll(parseResponseBody(clazz, response));
+                totalItems = extractTotalItems(response, totalItems);
+                skip += DEFAULT_PAGINATION_LIMIT;
 
                 // Process Content-Range header
                 String contentRange = response.header("Content-Range");
                 if (contentRange != null) {
-                    Matcher matcher = Pattern.compile(PAGINATION_RANGE_HEADER_PATTERN).matcher(contentRange);
+                    Matcher matcher = Pattern.compile(PAGINATION_HEADER_PATTERN).matcher(contentRange);
                     if (matcher.matches()) {
                         int endIndex = Integer.parseInt(matcher.group(2));
                         totalItems = Integer.parseInt(matcher.group(3));
@@ -72,16 +79,21 @@ public class ApiClient {
                 } else { // no Content-Range header
                     break;
                 }
+            } catch (IOException e) {
+                throw new ApiClientException("Error fetching records: " + e.getMessage(), e);
             }
         }
 
         return result;
     }
 
-    private static String addFilter(String filter, String url) {
-        return filter == null ? url : url + "&filter=" + URLEncoder.encode(filter, StandardCharsets.UTF_8);
-    }
-
+    /**
+     * Sends an HTTP GET request with retry logic and exponential backoff.
+     *
+     * @param url The URL to send the request to.
+     * @return The HTTP response.
+     * @throws ApiClientException If the request fails after retries.
+     */
     private Response sendGetRequest(String url) {
         Request request = new Request.Builder()
                 .url(url)
@@ -90,37 +102,80 @@ public class ApiClient {
                 .header("Authorization", "Bearer " + accessToken)
                 .build();
 
-        return sendRequest(request);
+        return sendRequestWithRetry(request);
     }
 
-    private Response sendRequest(Request request) {
-        int nbrAttemptTooManyRequests = 0;
+    /**
+     * Executes an HTTP request with retry logic for handling rate limits (HTTP 429).
+     */
+    private Response sendRequestWithRetry(Request request) {
+        int attempt = 0;
 
-        while (nbrAttemptTooManyRequests < MAX_RETRIES_FOR_TOO_MANY_REQUESTS) {
+        while (attempt < DEFAULT_MAX_RETRIES) {
             try {
                 Response response = client.newCall(request).execute();
 
                 if (response.isSuccessful()) {
                     return response;
-                } else if (response.code() == 429) {
+                } else if (response.code() == 429) { // Too Many Requests
                     response.close();
-                    nbrAttemptTooManyRequests++;
+                    //sleepWithBackoff(attempt); //todo remove
+                    attempt++;
                 } else {
-                    throw new RuntimeException("Request failed: " + response.code() + " - " + response.message());
+                    throw new ApiClientException("Request failed: " + response.code() + " - " + response.message());
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Error making request: " + e.getMessage(), e);
+                throw new ApiClientException("Error making request: " + e.getMessage(), e);
             }
         }
 
-        throw new RuntimeException("Max retries reached. Request failed.");
+        throw new ApiClientException("Max retries reached. Request failed.");
     }
 
+    /**
+     * Parses the response body into a list of objects.
+     */
     private <T> List<T> parseResponseBody(Class<T> clazz, Response response) throws IOException {
         JavaType responseType = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz);
         if (response.body() == null) {
-            throw new RuntimeException("Request failed as body was null");
+            throw new ApiClientException("Response body is null");
         }
         return objectMapper.readValue(response.body().string(), responseType);
     }
+
+    /**
+     * Extracts the total number of items from the "Content-Range" header.
+     */
+    private int extractTotalItems(Response response, int currentTotal) {
+        String contentRange = response.header("Content-Range");
+        if (contentRange != null) {
+            Matcher matcher = Pattern.compile(PAGINATION_HEADER_PATTERN).matcher(contentRange);
+            if (matcher.matches()) {
+                return Integer.parseInt(matcher.group(3));
+            }
+        }
+        return currentTotal;
+    }
+
+    /**
+     * Builds a URL with pagination and optional filters.
+     */
+    private String buildUrl(String endpoint, int skip, int take, String filter) {
+        String url = String.format("%s%s?skip=%d&take=%d", apiBaseUrl, endpoint, skip, take);
+        return (filter == null) ? url : url + "&filter=" + URLEncoder.encode(filter, StandardCharsets.UTF_8);
+    }
+
+    //todo remove?
+    /**
+     * Sleeps using an exponential backoff strategy to handle rate limits.
+     */
+    private void sleepWithBackoff(int attempt) {
+        try {
+            long delay = BASE_RETRY_DELAY_MS * (long) Math.pow(2, attempt);
+            TimeUnit.MILLISECONDS.sleep(delay);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
 }

@@ -51,14 +51,16 @@ public class Tests extends TestsSetup {
     private GroupApiClient groupApiClient;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws IOException {
         OkHttpClient httpClient = getHttpClientBuilder().build();
         AuthorisationService authorisationService = new AuthorisationService(httpClient, API_PORT);
-        String accessToken = authorisationService.authenticate(API_USER, API_PASSWORD);
+        String accessToken = authorisationService.authenticate(API_USER, API_PASSWORD); //todo dont throw IOException
+        String apiBaseUrl = String.format("http://localhost:%d/api/", API_PORT);
 
-        accountApiClient = new AccountApiClient(httpClient, accessToken);
-        relationshipApiClient = new RelationshipApiClient(httpClient, accessToken);
-        groupApiClient = new GroupApiClient(httpClient, accessToken);
+        ApiClient apiClient = new ApiClient(httpClient, apiBaseUrl, accessToken);
+        accountApiClient = new AccountApiClient(apiClient);
+        relationshipApiClient = new RelationshipApiClient(apiClient);
+        groupApiClient = new GroupApiClient(apiClient);
     }
 
     /**
