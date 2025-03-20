@@ -40,8 +40,11 @@ public class GroupMemberAccountResolver {
     }
 
     /**
-     * Recursively collects account IDs. If the provided ID represents a group, its members are processed recursively.
+     * Recursively collects account IDs. If the provided ID represents an active group, its members are processed recursively.
      * Otherwise, the ID is added to the set of found account IDs.
+     * <p>
+     * Inactive groups are ignored, and their members are not processed.
+     * </p>
      *
      * @param groupOrMemberId the ID of a group or account.
      * @param foundAccountIds the set to which discovered account IDs are added.
