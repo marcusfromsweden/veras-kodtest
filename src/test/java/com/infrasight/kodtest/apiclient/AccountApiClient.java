@@ -1,7 +1,6 @@
 package com.infrasight.kodtest.apiclient;
 
 import com.infrasight.kodtest.dto.Account;
-import okhttp3.OkHttpClient;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,11 +17,11 @@ public class AccountApiClient {
     }
 
     public List<Account> getAccountsByEmployeeId(String employeeId) throws IOException {
-        return apiClient.fetchRecords(ENDPOINT, Account.class, "employeeId=" + employeeId);
+        return apiClient.getRecords(ENDPOINT, Account.class, "employeeId=" + employeeId);
     }
 
     public Account getAccountById(String accountId) throws IOException {
-        List<Account> accounts = apiClient.fetchRecords(ENDPOINT, Account.class, "id=" + accountId);
+        List<Account> accounts = apiClient.getRecords(ENDPOINT, Account.class, "id=" + accountId);
         if (accounts.isEmpty()) {
             throw new ApiClientException("No Account found for accountId " + accountId);
         } else if (accounts.size() > 1) {
@@ -32,10 +31,10 @@ public class AccountApiClient {
     }
 
     public List<Account> getAccountsByFirstName(String firstName) throws IOException {
-        return apiClient.fetchRecords(ENDPOINT, Account.class, "firstName=" + firstName);
+        return apiClient.getRecords(ENDPOINT, Account.class, "firstName=" + firstName);
     }
 
     public List<Account> getAllAccounts() throws IOException {
-        return apiClient.fetchRecords(ENDPOINT, Account.class, null);
+        return apiClient.getRecords(ENDPOINT, Account.class, null);
     }
 }

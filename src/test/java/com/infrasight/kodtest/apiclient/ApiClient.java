@@ -41,16 +41,16 @@ public class ApiClient {
     }
 
     /**
-     * Fetches records from a paginated API endpoint.
+     * Retrieves records from a paginated API endpoint.
      *
-     * @param <T>      The type of records extending {@link ApiRecord} that will be fetched and mapped from the API response.
+     * @param <T>      The type of records extending {@link ApiRecord} that will be retrieved and mapped from the API response.
      * @param endpoint The relative API path that identifies the resource to fetch (e.g., "accounts", "groups", "relationships").
      * @param clazz    The Class representing the type {@code T}, used for JSON deserialization.
      * @param filter   Optional filter on exact field value. Syntax is field=value. Example: objectType=Account.
      * @return A list of records of type {@code T} retrieved from the API.
      * @throws ApiClientException If an error occurs during the request.
      */
-    protected <T extends ApiRecord> List<T> fetchRecords(String endpoint, Class<T> clazz, String filter) {
+    protected <T extends ApiRecord> List<T> getRecords(String endpoint, Class<T> clazz, String filter) {
         List<T> result = new ArrayList<>();
         int skip = 0;
         int totalItems = Integer.MAX_VALUE;
@@ -58,7 +58,7 @@ public class ApiClient {
         while (skip < totalItems) {
             String url = buildUrl(endpoint, skip, DEFAULT_PAGINATION_LIMIT, filter);
 
-            try (Response response = sendRequestWithRetry(buildGetRequest(url))) {
+            try (Response response = executeRequestWithRetry(buildGetRequest(url))) {
                 validateResponse(response);
                 result.addAll(parseResponseBody(clazz, response));
 
@@ -85,9 +85,14 @@ public class ApiClient {
     }
 
     /**
-     * Executes an HTTP request with retry logic for handling rate limits (HTTP 429).
+     * Sends an HTTP request with automatic retry handling for rate-limited responses.
+     *
+     * @param request The HTTP request to be sent.
+     * @return The successful HTTP response.
+     * @throws ApiClientException If the request fails after the maximum number of retries
+     *                            or encounters an I/O error.
      */
-    private Response sendRequestWithRetry(Request request) {
+    private Response executeRequestWithRetry(Request request) {
         int attempt = 0;
 
         while (attempt < DEFAULT_MAX_RETRIES) {
@@ -98,6 +103,7 @@ public class ApiClient {
                     return response;
                 } else if (response.code() == 429) { // Too Many Requests
                     response.close();
+                    //would normally use exponential backoff here, though I skipped it to let the tests run faster
                     attempt++;
                 } else {
                     throw new ApiClientException(

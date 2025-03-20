@@ -24,7 +24,7 @@ public class GroupApiClient {
      * @throws IOException If an API request fails.
      */
     public Set<String> getAllGroupIds() throws IOException {
-        return apiClient.fetchRecords(ENDPOINT, Group.class, null).stream()
+        return apiClient.getRecords(ENDPOINT, Group.class, null).stream()
                 .map(Group::getId)
                 .collect(Collectors.toSet());
     }
@@ -36,7 +36,7 @@ public class GroupApiClient {
      * @throws IOException If an API request fails.
      */
     public Set<String> getGroupIdsForActiveGroups() throws IOException {
-        return apiClient.fetchRecords(ENDPOINT, Group.class, null).stream()
+        return apiClient.getRecords(ENDPOINT, Group.class, null).stream()
                 .filter(Group::isActive)
                 .map(Group::getId)
                 .collect(Collectors.toSet());

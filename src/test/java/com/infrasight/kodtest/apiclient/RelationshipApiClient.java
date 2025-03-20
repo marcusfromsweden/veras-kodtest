@@ -24,7 +24,7 @@ public class RelationshipApiClient {
      * @throws IOException If an API request fails.
      */
     public List<Relationship> getRelationshipsByMemberId(String memberId) throws IOException {
-        return apiClient.fetchRecords(ENDPOINT, Relationship.class, "memberId=" + memberId);
+        return apiClient.getRecords(ENDPOINT, Relationship.class, "memberId=" + memberId);
     }
 
     /**
@@ -35,7 +35,7 @@ public class RelationshipApiClient {
      * @throws IOException If an API request fails.
      */
     public List<Relationship> getRelationshipsByGroupId(String groupId) throws IOException {
-        return apiClient.fetchRecords(ENDPOINT, Relationship.class, "groupId=" + groupId);
+        return apiClient.getRecords(ENDPOINT, Relationship.class, "groupId=" + groupId);
     }
 
     /**
@@ -48,7 +48,7 @@ public class RelationshipApiClient {
      * @throws ApiClientException If no or multiple relationships are found.
      */
     public Relationship getRelationshipsByManagedId(String managedId) throws IOException {
-        List<Relationship> relationships = apiClient.fetchRecords(ENDPOINT, Relationship.class, "managedId=" + managedId);
+        List<Relationship> relationships = apiClient.getRecords(ENDPOINT, Relationship.class, "managedId=" + managedId);
         if (relationships.isEmpty()) {
             throw new ApiClientException("No Relationship found for managedId " + managedId);
         } else if (relationships.size() > 1) {
