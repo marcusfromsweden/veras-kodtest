@@ -3,7 +3,9 @@ package com.infrasight.kodtest.api.client;
 import com.infrasight.kodtest.api.model.Account;
 import com.infrasight.kodtest.exception.AccountApiClientException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * API client for fetching Account-related data from the API.
@@ -58,4 +60,21 @@ public class AccountApiClient {
         return apiClient.getRecords(ENDPOINT, Account.class, String.format("%s=%s", PARAM_FIRST_NAME, firstName));
     }
 
+    /**
+     * Retrieves active accounts from the provided set of account IDs.
+     *
+     * @param accountIds A set of account IDs to retrieve and filter.
+     * @return A list of active {@link Account} objects corresponding to the provided IDs.
+     * @throws AccountApiClientException If none or multiple accounts are found.
+     */
+    public List<Account> getActiveAccountsByIds(Set<String> accountIds) {
+        List<Account> accounts = new ArrayList<>();
+        for (String accountId : accountIds) {
+            Account account = getAccountById(accountId);
+            if (account.isActive()) {
+                accounts.add(account);
+            }
+        }
+        return accounts;
+    }
 }

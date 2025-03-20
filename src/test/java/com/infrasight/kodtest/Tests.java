@@ -1,14 +1,10 @@
 package com.infrasight.kodtest;
 
-import com.infrasight.kodtest.api.client.AccountApiClient;
-import com.infrasight.kodtest.api.client.ApiClient;
-import com.infrasight.kodtest.api.client.GroupApiClient;
-import com.infrasight.kodtest.api.client.RelationshipApiClient;
+import com.infrasight.kodtest.api.client.*;
 import com.infrasight.kodtest.api.model.Account;
 import com.infrasight.kodtest.api.model.Relationship;
-import com.infrasight.kodtest.api.client.AuthenticationApiClient;
-import com.infrasight.kodtest.resolver.GroupMemberAccountResolver;
 import com.infrasight.kodtest.resolver.GroupAssociationResolver;
+import com.infrasight.kodtest.resolver.GroupMemberAccountResolver;
 import okhttp3.OkHttpClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -164,7 +160,7 @@ public class Tests extends TestsSetup {
 
         GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, allGroupIds, idsOfActiveGroups);
         Set<String> accountIdsForInterimStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_inhyrda");
-        List<Account> accountsForInterimStaff = getActiveAccounts(accountIdsForInterimStaff);
+        List<Account> accountsForInterimStaff = accountApiClient.getActiveAccountsByIds(accountIdsForInterimStaff);
         double totalInterimStaffSalary = calculateTotalSalaryInSEK(accountsForInterimStaff);
 
         double expectedTotalSalary = 24650836.8;
@@ -188,7 +184,7 @@ public class Tests extends TestsSetup {
                 .collect(Collectors.toSet());
 
         // collecting active accounts
-        List<Account> accountsForSwedishSalesStaff = getActiveAccounts(accountIdsForSwedishSalesStaff);
+        List<Account> accountsForSwedishSalesStaff = accountApiClient.getActiveAccountsByIds(accountIdsForSwedishSalesStaff);
 
         // filtering on employment date
         List<Account> resultingAccounts = getAccountsFilteredOnEmploymentDate(
@@ -230,17 +226,6 @@ public class Tests extends TestsSetup {
                 .forEach(entry ->
                         System.out.println(managerAccounts.get(entry.getKey()).getFullName() + ": " + entry.getValue())
                 );
-    }
-
-    private List<Account> getActiveAccounts(Set<String> accountIds) {
-        List<Account> accounts = new ArrayList<>();
-        for (String accountId : accountIds) {
-            Account account = accountApiClient.getAccountById(accountId);
-            if (account.isActive()) {
-                accounts.add(account);
-            }
-        }
-        return accounts;
     }
 
     private double calculateTotalSalaryInSEK(List<Account> accounts) {
