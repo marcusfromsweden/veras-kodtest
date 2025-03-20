@@ -16,7 +16,6 @@ public class AccountHelper {
     private static final ZoneId UTC_ZONE = ZoneId.of("UTC");
 
     private AccountHelper() {
-        // Prevent instantiation
     }
 
     /**

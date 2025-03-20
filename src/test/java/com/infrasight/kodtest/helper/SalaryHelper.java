@@ -8,11 +8,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Utility class for salary-related calculations.
+ */
 public class SalaryHelper {
 
     private SalaryHelper() {
     }
 
+    /**
+     * Calculates the total salary in SEK for a given list of accounts.
+     *
+     * @param accounts The list of accounts to process.
+     * @return The total salary in SEK.
+     */
     public static double calculateTotalSalaryInSEK(List<Account> accounts) {
         Map<String, Double> currencyConversion = getCurrencyConversion();
         double totalSalary = 0;
