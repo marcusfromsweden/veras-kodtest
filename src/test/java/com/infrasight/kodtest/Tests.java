@@ -3,6 +3,8 @@ package com.infrasight.kodtest;
 import com.infrasight.kodtest.api.client.*;
 import com.infrasight.kodtest.api.model.Account;
 import com.infrasight.kodtest.api.model.Relationship;
+import com.infrasight.kodtest.helper.AccountHelper;
+import com.infrasight.kodtest.helper.SalaryHelper;
 import com.infrasight.kodtest.resolver.GroupAssociationResolver;
 import com.infrasight.kodtest.resolver.GroupMemberAccountResolver;
 import okhttp3.OkHttpClient;
@@ -10,14 +12,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-import com.infrasight.kodtest.helper.AccountHelper;
+
 import static com.infrasight.kodtest.TestVariables.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -161,7 +159,7 @@ public class Tests extends TestsSetup {
         GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, allGroupIds, idsOfActiveGroups);
         Set<String> accountIdsForInterimStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_inhyrda");
         List<Account> accountsForInterimStaff = accountApiClient.getActiveAccountsByIds(accountIdsForInterimStaff);
-        double totalInterimStaffSalary = calculateTotalSalaryInSEK(accountsForInterimStaff);
+        double totalInterimStaffSalary = SalaryHelper.calculateTotalSalaryInSEK(accountsForInterimStaff);
 
         double expectedTotalSalary = 24650836.8;
         assertEquals("Total interim staff salary match", expectedTotalSalary, totalInterimStaffSalary, 1.0);
@@ -227,29 +225,4 @@ public class Tests extends TestsSetup {
                         System.out.println(managerAccounts.get(entry.getKey()).getFullName() + ": " + entry.getValue())
                 );
     }
-
-    private double calculateTotalSalaryInSEK(List<Account> accounts) {
-        Map<String, Double> currencyConversion = getCurrencyConversion();
-        double totalSalary = 0;
-        for (Account account : accounts) {
-            int salary = account.getSalary();
-            totalSalary += roundUpToTwoDecimals(salary * currencyConversion.get(account.getSalaryCurrency()));
-        }
-        return totalSalary;
-    }
-
-    private Map<String, Double> getCurrencyConversion() {
-        Map<String, Double> currencyConversion = new HashMap<>();
-        currencyConversion.put("EUR", 11.0);
-        currencyConversion.put("DKK", 1.48);
-        currencyConversion.put("SEK", 1.0);
-        return currencyConversion;
-    }
-
-    private double roundUpToTwoDecimals(double number) {
-        return BigDecimal.valueOf(number)
-                .setScale(2, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
-
 }
