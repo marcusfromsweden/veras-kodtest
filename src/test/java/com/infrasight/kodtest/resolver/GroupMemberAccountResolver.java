@@ -28,15 +28,15 @@ public class GroupMemberAccountResolver {
      * @return a set of account IDs belonging to the specified group and its sub-groups.
      */
     public Set<String> getAccountIdsForGroup(String groupId) {
-        Set<String> foundAccountIds = ConcurrentHashMap.newKeySet();
+        Set<String> discoveredAccountIds = ConcurrentHashMap.newKeySet();
 
         List<Relationship> relationships = relationshipApiClient.getRelationshipsByGroupId(groupId);
 
         for (Relationship relationship : relationships) {
-            getAccountIdsForGroupRecursively(relationship.getMemberId(), foundAccountIds);
+            getAccountIdsForGroupRecursively(relationship.getMemberId(), discoveredAccountIds);
         }
 
-        return foundAccountIds;
+        return discoveredAccountIds;
     }
 
     /**
@@ -46,10 +46,10 @@ public class GroupMemberAccountResolver {
      * Inactive groups are ignored, and their members are not processed.
      * </p>
      *
-     * @param groupOrMemberId the ID of a group or account.
-     * @param foundAccountIds the set to which discovered account IDs are added.
+     * @param groupOrMemberId      the ID of a group or account.
+     * @param discoveredAccountIds the set to which discovered account IDs are added.
      */
-    private void getAccountIdsForGroupRecursively(String groupOrMemberId, Set<String> foundAccountIds) {
+    private void getAccountIdsForGroupRecursively(String groupOrMemberId, Set<String> discoveredAccountIds) {
         if (getIdsOfAllGroups().contains(groupOrMemberId)) {
             if (!getIdsOfActiveGroups().contains(groupOrMemberId)) {
                 return;
@@ -57,10 +57,10 @@ public class GroupMemberAccountResolver {
             List<Relationship> groupRelationships = relationshipApiClient.getRelationshipsByGroupId(groupOrMemberId);
 
             for (Relationship groupRelationship : groupRelationships) {
-                getAccountIdsForGroupRecursively(groupRelationship.getMemberId(), foundAccountIds);
+                getAccountIdsForGroupRecursively(groupRelationship.getMemberId(), discoveredAccountIds);
             }
         } else {
-            foundAccountIds.add(groupOrMemberId);
+            discoveredAccountIds.add(groupOrMemberId);
         }
     }
 
