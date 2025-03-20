@@ -129,10 +129,11 @@ public class ApiClient {
      * @throws ApiClientException If the response body is null.
      */
     private <T> List<T> parseResponseBody(Class<T> clazz, Response response) throws IOException {
-        JavaType responseType = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz);
         if (response.body() == null) {
             throw new ApiClientException("Response body is null");
         }
+
+        JavaType responseType = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz);
         return objectMapper.readValue(response.body().string(), responseType);
     }
 
