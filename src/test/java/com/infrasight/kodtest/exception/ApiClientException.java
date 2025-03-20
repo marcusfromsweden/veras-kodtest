@@ -1,4 +1,4 @@
-package com.infrasight.kodtest.api.client;
+package com.infrasight.kodtest.exception;
 
 public class ApiClientException extends RuntimeException {
 

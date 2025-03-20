@@ -3,6 +3,7 @@ package com.infrasight.kodtest.api.client;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infrasight.kodtest.api.model.ApiRecord;
+import com.infrasight.kodtest.exception.ApiClientException;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
