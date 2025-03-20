@@ -6,9 +6,9 @@ import com.infrasight.kodtest.api.client.GroupApiClient;
 import com.infrasight.kodtest.api.client.RelationshipApiClient;
 import com.infrasight.kodtest.api.model.Account;
 import com.infrasight.kodtest.api.model.Relationship;
-import com.infrasight.kodtest.service.AccountService;
 import com.infrasight.kodtest.service.AuthorisationService;
-import com.infrasight.kodtest.service.GroupRelationshipService;
+import com.infrasight.kodtest.service.resolver.GroupMemberAccountResolver;
+import com.infrasight.kodtest.service.resolver.GroupAssociationResolver;
 import okhttp3.OkHttpClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -113,8 +113,8 @@ public class Tests extends TestsSetup {
         assertEquals("One account expected for Vera (via employeeId)", 1, accountsViaEmployeeId.size());
         Account accountForVera = accountsViaEmployeeId.iterator().next();
 
-        GroupRelationshipService groupRelationshipService = new GroupRelationshipService(relationshipApiClient, groupApiClient);
-        Set<String> groupIds = groupRelationshipService.getDirectGroupIdsForGroupMember(accountForVera.getId());
+        GroupAssociationResolver groupAssociationResolver = new GroupAssociationResolver(relationshipApiClient, groupApiClient);
+        Set<String> groupIds = groupAssociationResolver.getDirectGroupIdsForGroupMember(accountForVera.getId());
 
         assertEquals("Number of direct groups for Vera", 3, groupIds.size());
 
@@ -134,8 +134,8 @@ public class Tests extends TestsSetup {
 
         List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId("1337");
         Account accountForVera = accountsViaEmployeeId.iterator().next();
-        GroupRelationshipService groupRelationshipService = new GroupRelationshipService(relationshipApiClient, groupApiClient);
-        Set<String> groupIds = groupRelationshipService.getAllGroupIdsForGroupMember(accountForVera.getId());
+        GroupAssociationResolver groupAssociationResolver = new GroupAssociationResolver(relationshipApiClient, groupApiClient);
+        Set<String> groupIds = groupAssociationResolver.getAllGroupIdsForGroupMember(accountForVera.getId());
 
         List<String> expectedGroupIds = new ArrayList<>();
         expectedGroupIds.add("grp_inhyrda");
@@ -162,8 +162,8 @@ public class Tests extends TestsSetup {
         Set<String> allGroupIds = groupApiClient.getAllGroupIds();
         Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
 
-        AccountService accountService = new AccountService(relationshipApiClient, allGroupIds, idsOfActiveGroups);
-        Set<String> accountIdsForInterimStaff = accountService.getAccountIdsByGroupId("grp_inhyrda");
+        GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, allGroupIds, idsOfActiveGroups);
+        Set<String> accountIdsForInterimStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_inhyrda");
         List<Account> accountsForInterimStaff = getActiveAccounts(accountIdsForInterimStaff);
         double totalInterimStaffSalary = calculateTotalSalaryInSEK(accountsForInterimStaff);
 
@@ -178,9 +178,9 @@ public class Tests extends TestsSetup {
         Set<String> idsOfActiveGroups = groupApiClient.getGroupIdsForActiveGroups();
         Set<String> allGroupIds = groupApiClient.getAllGroupIds();
 
-        AccountService accountService = new AccountService(relationshipApiClient, allGroupIds, idsOfActiveGroups);
-        Set<String> accountIdsForSalesStaff = accountService.getAccountIdsByGroupId("grp_saljare");
-        Set<String> accountIdsForSwedishEmployees = accountService.getAccountIdsByGroupId("grp_sverige");
+        GroupMemberAccountResolver groupMemberAccountResolver = new GroupMemberAccountResolver(relationshipApiClient, allGroupIds, idsOfActiveGroups);
+        Set<String> accountIdsForSalesStaff = groupMemberAccountResolver.getAccountIdsForGroup("grp_saljare");
+        Set<String> accountIdsForSwedishEmployees = groupMemberAccountResolver.getAccountIdsForGroup("grp_sverige");
 
         // collecting account IDs for Swedish sales staff
         Set<String> accountIdsForSwedishSalesStaff = accountIdsForSalesStaff.stream()

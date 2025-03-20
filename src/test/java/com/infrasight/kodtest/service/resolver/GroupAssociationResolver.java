@@ -1,4 +1,4 @@
-package com.infrasight.kodtest.service;
+package com.infrasight.kodtest.service.resolver;
 
 import com.infrasight.kodtest.api.client.GroupApiClient;
 import com.infrasight.kodtest.api.client.RelationshipApiClient;
@@ -8,11 +8,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class GroupRelationshipService {
+public class GroupAssociationResolver {
     private final RelationshipApiClient relationshipApiClient;
     private final GroupApiClient groupApiClient;
 
-    public GroupRelationshipService(RelationshipApiClient relationshipApiClient,
+    public GroupAssociationResolver(RelationshipApiClient relationshipApiClient,
                                     GroupApiClient groupApiClient) {
         this.relationshipApiClient = relationshipApiClient;
         this.groupApiClient = groupApiClient;
