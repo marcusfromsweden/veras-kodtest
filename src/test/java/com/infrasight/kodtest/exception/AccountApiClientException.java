@@ -6,7 +6,4 @@ public class AccountApiClientException extends RuntimeException {
         super(message);
     }
 
-    public AccountApiClientException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

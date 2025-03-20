@@ -1,6 +1,7 @@
 package com.infrasight.kodtest.api.client;
 
 import com.infrasight.kodtest.api.model.Relationship;
+import com.infrasight.kodtest.exception.RelationshipApiClientException;
 
 import java.util.List;
 
@@ -46,9 +47,9 @@ public class RelationshipApiClient {
     public Relationship getRelationshipsByManagedId(String managedId) {
         List<Relationship> relationships = apiClient.getRecords(ENDPOINT, Relationship.class, "managedId=" + managedId);
         if (relationships.isEmpty()) {
-            throw new ApiClientException("No Relationship found for managedId " + managedId);
+            throw new RelationshipApiClientException(String.format("No Relationship found for managedId %s", managedId));
         } else if (relationships.size() > 1) {
-            throw new ApiClientException("More than one Relationship found for managedId " + managedId);
+            throw new RelationshipApiClientException(String.format("More than one Relationship found for managedId %s", managedId));
         }
         return relationships.get(0);
     }
