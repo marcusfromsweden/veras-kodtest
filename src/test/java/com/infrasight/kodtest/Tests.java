@@ -29,13 +29,16 @@ import static org.junit.Assert.assertTrue;
  * <p>
  * Solution comments:<p/>
  * <ul>
- *   <li> Active group and Accounts are taken into consideration.</li>
+ *   <li> When processing relationships to identify groups for a member or members in a group, inactive groups are not
+ *        included/processed.</li>
+ *   <li> No requirement was specified regarding only including active accounts, though in assignment 4 and 5 they are,
+ *        as the reports would be incorrect if not.</li>
  *   <li> {@link ApiClient} is used as the abstraction layer against the API.</li>
- *   <li> {@link AccountApiClient}, {@link RelationshipApiClient} and {@link GroupApiClient} extends {@link ApiClient},
- *        providing access to the API for their corresponding pojos.</li>
- *   <li> For simplicity all API clients are instantiated before each test, as well as the required authorisation.</li>
- *   <li> All API-calls goes via the same method in ApiClient (getElements), which handles pagination. One could consider adding
- *        another method for calls that fetch one object, like getAccountById in AccountApiClient...</li>
+ *   <li> {@link AccountApiClient}, {@link RelationshipApiClient} and {@link GroupApiClient} uses {@link ApiClient},
+ *        providing access to the API for their corresponding API record classes.</li>
+ *   <li> For simplicity all API clients are instantiated before each test, as well as the required authentication.</li>
+ *   <li> All API-calls goes via the same method in {@link ApiClient}, which handles pagination. One could consider adding
+ *        another method for calls that only fetch one object, like getAccountById in {@link AccountApiClient}...</li>
  *  </ul>
  */
 public class Tests extends TestsSetup {
@@ -76,24 +79,20 @@ public class Tests extends TestsSetup {
     public void assignment1() {
         assertTrue(serverUp);
 
-        // getting active accounts by employment ID
-        List<Account> activeAccountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID)
-                .stream()
-                .filter(Account::isActive)
-                .collect(Collectors.toList());
-        assertEquals("One account expected for Vera (via employeeId)", 1, activeAccountsViaEmployeeId.size());
-        Account accountForVera = activeAccountsViaEmployeeId.get(0);
+        // getting accounts by employment ID
+        List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID);
+        assertEquals("One account expected for Vera (via employeeId)", 1, accountsViaEmployeeId.size());
+        Account accountForVera = accountsViaEmployeeId.get(0);
         assertEquals("First name correct on account", VERAS_FIRST_NAME, accountForVera.getFirstName());
         assertEquals("Last name correct on account", VERAS_LAST_NAME, accountForVera.getLastName());
 
-        // getting active accounts by first and last name (to check for more accounts)
-        List<Account> activeAccountsByFirstAndLastName = accountApiClient.getAccountsByFirstName(VERAS_FIRST_NAME)
+        // getting accounts by first and last name (to check for more accounts)
+        List<Account> accountsByFirstAndLastName = accountApiClient.getAccountsByFirstName(VERAS_FIRST_NAME)
                 .stream()
                 .filter(a -> VERAS_LAST_NAME.equals(a.getLastName()))
-                .filter(Account::isActive)
                 .collect(Collectors.toList());
 
-        for (Account account : activeAccountsByFirstAndLastName) {
+        for (Account account : accountsByFirstAndLastName) {
             assertEquals("Account id via first and last name is the same as Veras account (via employeeId)",
                     accountForVera.getId(), account.getId());
         }
@@ -103,10 +102,7 @@ public class Tests extends TestsSetup {
     public void assignment2() {
         assertTrue(serverUp);
 
-        List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID)
-                .stream()
-                .filter(Account::isActive)
-                .collect(Collectors.toList());
+        List<Account> accountsViaEmployeeId = accountApiClient.getAccountsByEmployeeId(VERAS_EMPLOYEE_ID);
         assertEquals("One account expected for Vera (via employeeId)", 1, accountsViaEmployeeId.size());
         Account accountForVera = accountsViaEmployeeId.iterator().next();
 
