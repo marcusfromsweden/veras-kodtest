@@ -56,7 +56,7 @@ public class Account extends ApiRecord {
     @Override
     public String toString() {
         return "Account{" +
-                ", id='" + id + '\'' +
+                "id='" + id + '\'' +
                 ", salary=" + salary +
                 ", active=" + active +
                 ", firstName='" + firstName + '\'' +

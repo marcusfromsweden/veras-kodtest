@@ -21,10 +21,14 @@ public class Group extends ApiRecord {
         return active;
     }
 
+    public String getName() {
+        return name;
+    }
+
     @Override
     public String toString() {
         return "Group{" +
-                ", id='" + id + '\'' +
+                "id='" + id + '\'' +
                 ", active=" + active +
                 ", name='" + name + '\'' +
                 '}';

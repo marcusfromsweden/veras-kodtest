@@ -15,6 +15,10 @@ public class Relationship extends ApiRecord {
     @SuppressWarnings("unused")
     private String accountId;
 
+    public String getId() {
+        return id;
+    }
+
     public String getGroupId() {
         return groupId;
     }
@@ -30,7 +34,7 @@ public class Relationship extends ApiRecord {
     @Override
     public String toString() {
         return "Relationship{" +
-                ", id='" + id + '\'' +
+                "id='" + id + '\'' +
                 ", groupId='" + groupId + '\'' +
                 ", memberId='" + memberId + '\'' +
                 ", accountId='" + accountId + '\'' +
